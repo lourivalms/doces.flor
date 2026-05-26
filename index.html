@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doces Flor - Brigadeiros</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --laranja:       #E8724A;
+            --laranja-escuro:#C9522A;
+            --laranja-claro: #F9DDD0;
+            --marrom:        #3E1F00;
+            --marrom-medio:  #7B4A2D;
+            --bege:          #FDF6EE;
+            --bege-escuro:   #F2E8DC;
+            --verde:         #7A9E5F;
+            --branco:        #FFFFFF;
+        }
+
+        body {
+            font-family: 'Lato', Arial, sans-serif;
+            background-color: var(--bege);
+            color: var(--marrom);
+            padding-top: 90px;
+        }
+
+        /* ===== MENU FIXO ===== */
+        #menu-fixo {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            background: var(--laranja);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 85px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        #logo-topo {
+            height: 78px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .menu-botoes {
+            display: flex;
+            gap: 8px;
+        }
+
+        .menu-btn {
+            padding: 7px 14px;
+            border: 2px solid white;
+            border-radius: 20px;
+            background: transparent;
+            color: white;
+            font-family: 'Lato', Arial, sans-serif;
+            font-size: 0.82em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .menu-btn:hover,
+        .menu-btn.active {
+            background: white;
+            color: var(--laranja);
+        }
+
+        /* ===== SEÇÕES ===== */
+        .secao {
+            display: none;
+            max-width: 660px;
+            margin: 25px auto;
+            padding: 0 15px 50px;
+        }
+
+        .secao.active { display: block; }
+
+        .secao-titulo {
+            font-family: 'Playfair Display', serif;
+            color: var(--laranja-escuro);
+            font-size: 1.5em;
+            margin-bottom: 22px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--laranja-claro);
+        }
+
+        /* ===== FORMULÁRIO ===== */
+        .form-card {
+            background: var(--branco);
+            border: 2px solid var(--laranja-claro);
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(232,114,74,0.08);
+        }
+
+        .form-card-titulo {
+            font-family: 'Playfair Display', serif;
+            color: var(--marrom-medio);
+            font-size: 1.05em;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--laranja-claro);
+        }
+
+        label {
+            display: block;
+            font-size: 0.9em;
+            font-weight: 700;
+            color: var(--marrom-medio);
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--laranja-claro);
+            border-radius: 8px;
+            font-size: 0.92em;
+            font-family: 'Lato', Arial, sans-serif;
+            color: var(--marrom);
+            background: var(--branco);
+            box-sizing: border-box;
+            margin-bottom: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--laranja);
+            box-shadow: 0 0 5px rgba(232,114,74,0.25);
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        input[readonly] {
+            background-color: var(--bege-escuro);
+            cursor: not-allowed;
+            font-weight: 700;
+            color: var(--marrom-medio);
+        }
+
+        .linha-dupla {
+            display: flex;
+            gap: 12px;
+        }
+
+        .linha-dupla > div { flex: 1; }
+        .linha-dupla > div.estreito { flex: 0 0 80px; }
+
+        /* ===== BOTÕES ===== */
+        .btn {
+            padding: 11px 18px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Lato', Arial, sans-serif;
+            font-size: 0.92em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-laranja  { background: var(--laranja); color: white; }
+        .btn-laranja:hover  { background: var(--laranja-escuro); }
+
+        .btn-verde    { background: #25d366; color: white; }
+        .btn-verde:hover    { background: #1da851; }
+
+        .btn-amarelo  { background: #FFA500; color: white; }
+        .btn-amarelo:hover  { background: #e69400; }
+
+        .btn-vermelho { background: #dc3545; color: white; }
+        .btn-vermelho:hover { background: #c82333; }
+
+        .btn-marrom   { background: var(--marrom-medio); color: white; }
+        .btn-marrom:hover   { background: var(--marrom); }
+
+        .btn-bloco {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        /* ===== ITENS DO PEDIDO ===== */
+        #itensList { margin: 5px 0 12px; }
+
+        .item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: var(--bege);
+            border: 1px solid var(--laranja-claro);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .item-info { flex: 1; line-height: 1.6; font-size: 0.88em; }
+        .item-info p { margin: 1px 0; }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.82em;
+            font-weight: 700;
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+        .btn-remove:hover { background: #c82333; }
+
+        /* ===== CARDS DE PEDIDO ===== */
+        .pedido-card {
+            background: var(--branco);
+            border: 2px solid var(--laranja-claro);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(232,114,74,0.08);
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .pedido-nome {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15em;
+            font-weight: 700;
+            color: var(--laranja-escuro);
+        }
+
+        .pedido-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78em;
+            font-weight: 700;
+        }
+
+        .status-andamento { background: #fff3e0; color: #e65100; }
+        .status-entregue  { background: #e8f5e9; color: #2e7d32; }
+
+        .pedido-info { font-size: 0.88em; margin: 4px 0; color: var(--marrom-medio); }
+
+        .pedido-resumo {
+            background: var(--bege);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid var(--laranja-claro);
+        }
+
+        .pedido-detalhes {
+            background: var(--bege);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid var(--laranja);
+        }
+
+        .pedido-itens-lista {
+            background: var(--branco);
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin: 8px 0;
+            border: 1px solid var(--laranja-claro);
+        }
+
+        .pedido-item-linha { font-size: 0.84em; margin: 4px 0; }
+
+        .pedido-botoes {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .pedido-botoes .btn {
+            flex: 1;
+            min-width: 110px;
+            font-size: 0.82em;
+            padding: 9px 10px;
+            text-align: center;
+        }
+
+        /* ===== CALENDÁRIO ===== */
+        #calendario-wrapper {
+            display: none;
+            background: var(--branco);
+            border: 2px solid var(--laranja-claro);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(232,114,74,0.08);
+        }
+
+        .calendario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .calendario-header h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--laranja-escuro);
+            font-size: 1.1em;
+        }
+
+        .btn-mes {
+            background: var(--laranja-claro);
+            border: none;
+            padding: 7px 13px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--laranja-escuro);
+            font-family: 'Lato', Arial, sans-serif;
+        }
+        .btn-mes:hover { background: var(--laranja); color: white; }
+
+        .calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .dia-semana {
+            text-align: center;
+            font-weight: 700;
+            color: var(--laranja-escuro);
+            font-size: 0.75em;
+            padding: 5px 0;
+        }
+
+        .dia {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid var(--laranja-claro);
+            border-radius: 8px;
+            background: var(--bege);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dia:hover { border-color: var(--laranja); background: var(--laranja-claro); }
+        .dia.outro-mes { opacity: 0.3; background: #f5f5f5; pointer-events: none; }
+
+        .dia-numero { font-size: 0.9em; font-weight: 700; color: var(--marrom); }
+
+        .dia-contador {
+            font-size: 0.68em;
+            background: var(--laranja);
+            color: white;
+            border-radius: 50%;
+            width: 19px; height: 19px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+            font-weight: 700;
+        }
+
+        .dia.sem-pedidos .dia-contador { display: none; }
+
+        /* ===== CAMPOS CONDICIONAIS ===== */
+        #enderecoFields   { display: none; }
+        #valorPagoContainer { display: none; }
+        #corCustomizada   { display: none; margin-top: -10px; margin-bottom: 14px; }
+        #quantidadeCustomizada { display: none; margin-top: -10px; margin-bottom: 14px; }
+
+        /* ===== DIVISOR ===== */
+        .divisor {
+            border: none;
+            border-top: 1px dashed var(--laranja-claro);
+            margin: 15px 0;
+        }
+
+        /* ===== BADGE NOTIFICAÇÃO ===== */
+        .menu-btn-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--marrom);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.68em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 600px) {
+            body { padding-top: 80px; }
+            #menu-fixo { padding: 0 12px; height: 75px; }
+            #logo-topo { height: 65px; }
+            .menu-btn { padding: 6px 9px; font-size: 0.72em; }
+            .linha-dupla { flex-direction: column; gap: 0; }
+            .linha-dupla > div.estreito { flex: 1; }
+            .pedido-header { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .pedido-botoes .btn { min-width: 100%; }
+            .secao { padding: 0 10px 40px; }
+            .form-card { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== MENU FIXO ===== -->
+    <nav id="menu-fixo">
+        <img src="logo.png" id="logo-topo" alt="Doces Flor">
+        <div class="menu-botoes">
+            <button class="menu-btn active" onclick="irPara('criar', this)">➕ Novo Pedido</button>
+            <div class="menu-btn-wrapper">
+    <button class="menu-btn" id="btnAndamento" onclick="irPara('andamento', this)">📦 Andamento</button>
+</div>
+            <button class="menu-btn" onclick="irPara('finalizados', this)">✅ Finalizados</button>
+        </div>
+    </nav>
+
+<!-- ===== SEÇÃO 1: CRIAR PEDIDO ===== -->
+    <section id="secao-criar" class="secao active">
+        <h2 class="secao-titulo">🌸 Novo Pedido</h2>
+
+        <!-- CLIENTE -->
+        <div class="form-card">
+            <p class="form-card-titulo">👤 Dados do Cliente</p>
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" placeholder="Nome do cliente">
+
+            <label for="telefone">Telefone:</label>
+            <input type="text" id="telefone" placeholder="(47) 99999-9999">
+        </div>
+
+        <!-- ENTREGA -->
+        <div class="form-card">
+            <p class="form-card-titulo">📅 Entrega / Retirada</p>
+
+            <div class="linha-dupla">
+                <div>
+                    <label for="dataEntrega">Data:</label>
+                    <input type="date" id="dataEntrega">
+                </div>
+                <div>
+                    <label for="horarioEntrega">Horário:</label>
+                    <input type="time" id="horarioEntrega">
+                </div>
+            </div>
+
+            <label for="tipoEntrega">Tipo:</label>
+            <select id="tipoEntrega">
+                <option value="retirada" selected>Retirada</option>
+                <option value="entrega">Entrega</option>
+            </select>
+
+            <div id="enderecoFields">
+                <hr class="divisor">
+                <label for="cep">CEP:</label>
+                <input type="text" id="cep" placeholder="00000-000">
+
+                <div class="linha-dupla">
+                    <div>
+                        <label for="endereco">Endereço:</label>
+                        <input type="text" id="endereco">
+                    </div>
+                    <div class="estreito">
+                        <label for="numero">Nº:</label>
+                        <input type="text" id="numero">
+                    </div>
+                </div>
+
+                <label for="pontoReferencia">Complemento:</label>
+                <input type="text" id="pontoReferencia">
+
+                <label for="bairro">Bairro:</label>
+                <input type="text" id="bairro">
+
+                <label for="cidade">Cidade:</label>
+                <input type="text" id="cidade">
+            </div>
+        </div>
+
+        <!-- ITENS -->
+        <div class="form-card">
+            <p class="form-card-titulo">🍫 Adicionar Item</p>
+
+            <label for="sabor">Sabor:</label>
+            <select id="sabor">
+                <option value="">Selecione o sabor</option>
+                <optgroup label="Tradicionais (R$ 1,00)">
+                    <option value="Amendoim">Amendoim</option>
+                    <option value="Beijinho">Beijinho</option>
+                    <option value="Brigadeiro">Brigadeiro</option>
+                    <option value="Café">Café</option>
+                    <option value="Dois Amores">Dois Amores</option>
+                    <option value="Leite Ninho">Leite Ninho</option>
+                    <option value="Moranguinho">Moranguinho</option>
+                    <option value="Sensação">Sensação</option>
+                </optgroup>
+                <optgroup label="Gourmet (R$ 1,20)">
+                    <option value="Chocolate Gourmet Branco">Chocolate Gourmet Branco</option>
+                    <option value="Chocolate Gourmet Preto">Chocolate Gourmet Preto</option>
+                    <option value="Confete">Confete</option>
+                    <option value="Churros">Churros</option>
+                    <option value="Ferrero Rocher">Ferrero Rocher</option>
+                    <option value="Leite Ninho com Nutella">Leite Ninho com Nutella</option>
+                    <option value="Negresco">Negresco</option>
+                    <option value="Ovomaltine">Ovomaltine</option>
+                    <option value="Prestígio">Prestígio</option>
+                </optgroup>
+            </select>
+
+            <div class="linha-dupla">
+                <div>
+                    <label for="formato">Formato do Brigadeiro:</label>
+                    <select id="formato">
+                        <option value="">Selecione</option>
+                        <option value="Redondo">Redondo</option>
+                        <option value="Flor">Flor</option>
+                        <option value="Coração">Coração</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="tipoForma">Forminha:</label>
+                    <select id="tipoForma">
+                        <option value="">Selecione</option>
+                        <option value="Redonda">Redonda</option>
+                        <option value="Quadrada">Quadrada</option>
+                    </select>
+                </div>
+            </div>
+
+            <label for="cor">Cor da Forminha:</label>
+            <select id="cor">
+                <option value="">Selecione a cor</option>
+                <option value="Branca">Branca</option>
+                <option value="Preta">Preta</option>
+                <option value="Vermelha">Vermelha</option>
+                <option value="Rosa">Rosa</option>
+                <option value="Azul">Azul</option>
+                <option value="Verde">Verde</option>
+                <option value="Amarela">Amarela</option>
+                <option value="Roxa">Roxa</option>
+                <option value="Laranja">Laranja</option>
+                <option value="Marrom">Marrom</option>
+                <option value="Cinza">Cinza</option>
+                <option value="Dourada">Dourada</option>
+                <option value="Prateada">Prateada</option>
+                <option value="Outra">Outra (especificar)</option>
+            </select>
+            <input type="text" id="corCustomizada" placeholder="Especifique a cor">
+
+            <label for="quantidade">Quantidade:</label>
+            <select id="quantidade">
+                <option value="">Selecione</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="75">75</option>
+                <option value="100">100</option>
+                <option value="125">125</option>
+                <option value="150">150</option>
+                <option value="175">175</option>
+                <option value="200">200</option>
+                <option value="customizado">Especificar quantidade</option>
+            </select>
+            <input type="number" id="quantidadeCustomizada" placeholder="Digite a quantidade" min="1">
+
+            <button class="btn btn-laranja btn-bloco" id="btnAdicionarItem">+ Adicionar Item</button>
+
+
+            <div id="itensList"></div>
+        </div>
+
+        <!-- VALORES -->
+        <div class="form-card">
+            <p class="form-card-titulo">💰 Valores</p>
+
+            <label for="valor">Valor Brigadeiros:</label>
+            <input type="text" id="valor" readonly>
+
+            <label for="valorFrete">Custo Frete:</label>
+            <input type="text" id="valorFrete" placeholder="R$ 0,00">
+
+            <label for="valorTotal">Valor Total:</label>
+            <input type="text" id="valorTotal" readonly>
+        </div>
+
+        <!-- PAGAMENTO E OBS -->
+        <div class="form-card">
+            <p class="form-card-titulo">💳 Pagamento</p>
+
+            <label for="observacoes">Observações:</label>
+            <textarea id="observacoes" placeholder="Alguma observação especial?"></textarea>
+
+            <label for="statusPagamento">Status do Pagamento:</label>
+            <select id="statusPagamento">
+                <option value="A pagar">A pagar</option>
+                <option value="Pago Parcialmente">Pago Parcialmente</option>
+                <option value="Pago">Pago</option>
+            </select>
+
+            <div id="valorPagoContainer">
+                <label for="valorPago">Valor Pago:</label>
+                <input type="text" id="valorPago" placeholder="R$ 0,00">
+            </div>
+        </div>
+
+        <button class="btn btn-verde btn-bloco" id="btnEnviar" onclick="enviarWhatsApp()">
+            📲 Enviar para WhatsApp
+        </button>
+    </section>
+
+    <!-- ===== SEÇÃO 2: PEDIDOS EM ANDAMENTO ===== -->
+    <section id="secao-andamento" class="secao">
+        <h2 class="secao-titulo">📦 Pedidos em Andamento</h2>
+        <button class="btn btn-marrom btn-bloco" onclick="toggleCalendario()">📅 Ver Calendário</button>
+        <div id="calendario-wrapper">
+            <div id="calendario-container"></div>
+        </div>
+        <div id="lista-andamento"><p style="color:var(--marrom-medio);">Carregando...</p></div>
+    </section>
+
+    <!-- ===== SEÇÃO 3: PEDIDOS FINALIZADOS ===== -->
+    <section id="secao-finalizados" class="secao">
+        <h2 class="secao-titulo">✅ Pedidos Finalizados</h2>
+        <div id="lista-finalizados"><p style="color:var(--marrom-medio);">Carregando...</p></div>
+    </section>
+
+<script>
+        // ===== FIREBASE =====
+        var firebaseConfig = {
+            apiKey: "AIzaSyCYqic9IlxUXlS_yEuMLZvmg16wGh5_Ing",
+            authDomain: "doces-flor.firebaseapp.com",
+            databaseURL: "https://doces-flor-default-rtdb.firebaseio.com",
+            projectId: "doces-flor",
+            storageBucket: "doces-flor.firebasestorage.app",
+            messagingSenderId: "430929421910",
+            appId: "1:430929421910:web:2f1bea78c78602c3387df7"
+        };
+        firebase.initializeApp(firebaseConfig);
+        var database = firebase.database();
+
+        // ===== PREÇOS =====
+        const PRECOS = {
+            'Amendoim':1.00,'Beijinho':1.00,'Brigadeiro':1.00,'Café':1.00,
+            'Dois Amores':1.00,'Leite Ninho':1.00,'Moranguinho':1.00,'Sensação':1.00,
+            'Chocolate Gourmet Branco':1.20,'Chocolate Gourmet Preto':1.20,
+            'Confete':1.20,'Churros':1.20,'Ferrero Rocher':1.20,
+            'Leite Ninho com Nutella':1.20,'Negresco':1.20,'Ovomaltine':1.20,'Prestígio':1.20
+        };
+
+        // ===== ARRAY GLOBAL DE ITENS =====
+        let itens = [];
+
+        // ===== NAVEGAÇÃO =====
+        function irPara(secao, btn) {
+            document.querySelectorAll('.secao').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('secao-' + secao).classList.add('active');
+            if (btn) btn.classList.add('active');
+            window.scrollTo(0, 0);
+            if (secao === 'andamento')   carregarAndamento();
+            if (secao === 'finalizados') carregarFinalizados();
+        }
+
+        // ===== MÁSCARAS =====
+        function maskTelefone(v) {
+            v = v.replace(/\D/g,'');
+            if (v.length > 11) v = v.slice(0,11);
+            if (v.length === 0) return '';
+            if (v.length <= 2) return '(' + v;
+            if (v.length <= 7) return '(' + v.slice(0,2) + ') ' + v.slice(2);
+            return '(' + v.slice(0,2) + ') ' + v.slice(2,7) + '-' + v.slice(7);
+        }
+        function maskCEP(v) {
+            return v.replace(/\D/g,'').replace(/(\d{5})(\d{1,3})/,'$1-$2');
+        }
+        function maskMoeda(v) {
+            v = v.replace(/\D/g,'');
+            if (!v) return '';
+            return 'R$ ' + (parseInt(v)/100).toFixed(2).replace('.',',');
+        }
+
+        // ===== ITENS =====
+        function adicionarItem() {
+            const sabor    = document.getElementById('sabor').value;
+            const formato  = document.getElementById('formato').value;
+            const tipoForma= document.getElementById('tipoForma').value;
+            let   cor      = document.getElementById('cor').value;
+            if (cor === 'Outra') cor = document.getElementById('corCustomizada').value;
+
+            const selQtd = document.getElementById('quantidade').value;
+            let quantidade;
+            if (selQtd === 'customizado') {
+                quantidade = parseInt(document.getElementById('quantidadeCustomizada').value);
+                if (!quantidade || quantidade <= 0) { alert('Digite uma quantidade válida!'); return; }
+            } else {
+                quantidade = parseInt(selQtd);
+            }
+
+            if (!sabor)    { alert('Selecione um sabor.');     return; }
+            if (!formato)  { alert('Selecione o formato.');    return; }
+            if (!tipoForma){ alert('Selecione a forminha.');   return; }
+            if (!cor)      { alert('Selecione uma cor.');      return; }
+            if (!quantidade|| quantidade <= 0) { alert('Selecione a quantidade.'); return; }
+
+            itens.push({ sabor, formato, tipoForma, cor, quantidade });
+            renderizarItens();
+            atualizarValorBrigadeiros();
+        }
+
+        function renderizarItens() {
+            const list = document.getElementById('itensList');
+            list.innerHTML = '';
+            const ordenados = [...itens].sort((a,b) => a.sabor.localeCompare(b.sabor));
+            ordenados.forEach(item => {
+                const idxOriginal = itens.findIndex(i =>
+                    i.sabor===item.sabor && i.formato===item.formato &&
+                    i.tipoForma===item.tipoForma && i.cor===item.cor && i.quantidade===item.quantidade
+                );
+                const preco    = PRECOS[item.sabor] || 1.00;
+                const subtotal = (preco * item.quantidade).toFixed(2).replace('.',',');
+                let nomeSabor  = item.sabor
+                    .replace('Chocolate Gourmet Preto','Choc. G. Preto')
+                    .replace('Chocolate Gourmet Branco','Choc. G. Branco');
+
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <div class="item-info">
+                        <p><strong>${nomeSabor}</strong></p>
+                        <p>Qtd: ${item.quantidade} | B: ${item.formato} | F: ${item.tipoForma} | Cor: ${item.cor}</p>
+                        <p><strong>Subtotal: R$ ${subtotal}</strong> (R$ ${preco.toFixed(2).replace('.',',')} × ${item.quantidade})</p>
+                    </div>
+                    <button class="btn-remove" onclick="removerItem(${idxOriginal})">Remover</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function removerItem(idx) {
+            itens.splice(idx, 1);
+            renderizarItens();
+            atualizarValorBrigadeiros();
+        }
+
+        function atualizarValorBrigadeiros() {
+            let total = 0;
+            itens.forEach(i => total += (PRECOS[i.sabor] || 1.00) * i.quantidade);
+            document.getElementById('valor').value = 'R$ ' + total.toFixed(2).replace('.',',');
+            atualizarTotal();
+        }
+
+        function atualizarTotal() {
+            function limpar(v) {
+                if (!v) return 0;
+                return parseFloat(v.replace('R$','').replace(',','.').trim()) || 0;
+            }
+            const brig  = limpar(document.getElementById('valor').value);
+            const frete = limpar(document.getElementById('valorFrete').value);
+            document.getElementById('valorTotal').value = 'R$ ' + (brig + frete).toFixed(2).replace('.',',');
+        }
+
+        // ===== UTILITÁRIOS =====
+        function converterDataParaBR(dataISO) {
+            if (!dataISO) return '';
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(dataISO)) return dataISO;
+            const p = dataISO.split('-');
+            return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : dataISO;
+        }
+
+        function converterDataParaISO(dataBR) {
+            if (!dataBR) return '';
+            const p = dataBR.split('/');
+            return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : dataBR;
+        }
+
+        function getVal(id) {
+            const el = document.getElementById(id);
+            return el ? el.value : '';
+        }
+
+        function setVal(id, v) {
+            const el = document.getElementById(id);
+            if (el) el.value = v || '';
+        }
+
+        function formatarValor(v) {
+            if (!v && v !== 0) return '';
+            if (typeof v === 'number') return 'R$ ' + v.toFixed(2).replace('.',',');
+            return v;
+        }
+
+        // ===== WHATSAPP =====
+        function montarMensagem() {
+            const nome         = getVal('nome');
+            const telefone     = getVal('telefone');
+            const dataRaw      = getVal('dataEntrega');
+            const data         = converterDataParaBR(dataRaw);
+            const horario      = getVal('horarioEntrega');
+            const tipoEntrega  = getVal('tipoEntrega');
+            const valor        = getVal('valor');
+            const valorFrete   = getVal('valorFrete');
+            const valorTotal   = getVal('valorTotal');
+            const status       = getVal('statusPagamento');
+            const valorPago    = getVal('valorPago');
+            const obs          = getVal('observacoes');
+
+            let msg = `Pedidos - Doces Flor\n\n`;
+            msg += `Nome: ${nome}\n`;
+            msg += `Telefone: ${telefone}\n`;
+            msg += `Data: ${data} às ${horario}\n`;
+
+            if (tipoEntrega === 'retirada') {
+                msg += `Tipo de Entrega: Retirada\n`;
+            } else {
+                const end    = getVal('endereco');
+                const num    = getVal('numero');
+                const bairro = getVal('bairro');
+                const cidade = getVal('cidade');
+                const cep    = getVal('cep');
+                const comp   = getVal('pontoReferencia');
+                const link   = `https://www.google.com/maps/search/${encodeURIComponent(`${end}, ${num}, ${bairro}, ${cidade}`)}`;
+                msg += `Endereço: ${end}, ${num}, ${bairro}, ${cidade}, CEP: ${cep} - ${link}\n`;
+                if (comp) msg += `Complemento: ${comp}\n`;
+            }
+
+            msg += `──────────\nItens:\n`;
+
+            const primeiro   = itens[0];
+            const todosIguais = itens.every(i =>
+                i.formato===primeiro.formato && i.tipoForma===primeiro.tipoForma && i.cor===primeiro.cor
+            );
+
+            function abreviar(s) {
+                return s.replace('Chocolate Gourmet Preto','Choc. G. Preto')
+                        .replace('Chocolate Gourmet Branco','Choc. G. Branco');
+            }
+
+            if (itens.length === 1) {
+                msg += `${abreviar(primeiro.sabor)} - Qtd:${primeiro.quantidade}\n`;
+                msg += `B: ${primeiro.formato} | F: ${primeiro.tipoForma}/${primeiro.cor}\n`;
+            } else if (todosIguais) {
+                itens.forEach(i => msg += `${abreviar(i.sabor)} - Qtd:${i.quantidade}\n`);
+                msg += `\nBrigadeiro: ${primeiro.formato}\nForma: ${primeiro.tipoForma}/${primeiro.cor}\n`;
+            } else {
+                itens.forEach((i, idx) => {
+                    msg += `${abreviar(i.sabor)} - Qtd:${i.quantidade}\n`;
+                    msg += `B: ${i.formato} | F: ${i.tipoForma}/${i.cor}\n`;
+                    if (idx < itens.length - 1) msg += `\n`;
+                });
+            }
+
+            msg += `──────────\n`;
+            if (valorFrete && valorFrete !== 'R$ 0,00' && valorFrete.trim() !== '') {
+                msg += `Valor Brigadeiros: ${valor}\n`;
+                msg += `Valor Frete: ${valorFrete}\n`;
+                msg += `Valor Total: ${valorTotal}\n`;
+            } else {
+                msg += `Valor Total: ${valorTotal}\n`;
+            }
+            msg += `Status Pagamento: ${status}\n`;
+            if (valorPago) msg += `Valor Pago: ${valorPago}\n`;
+            if (obs)       msg += `\nObservações: ${obs}\n`;
+
+            return msg;
+        }
+
+        function copiarParaClipboard(texto) {
+            return new Promise((resolve) => {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(texto).then(() => resolve(true)).catch(() => fallbackCopy(texto, resolve));
+                } else {
+                    fallbackCopy(texto, resolve);
+                }
+            });
+        }
+
+        function fallbackCopy(texto, resolve) {
+            const ta = document.createElement('textarea');
+            ta.value = texto;
+            ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;';
+            document.body.appendChild(ta);
+            ta.focus(); ta.select();
+            try { resolve(document.execCommand('copy')); } catch(e) { resolve(false); }
+            document.body.removeChild(ta);
+        }
+
+        function enviarWhatsApp() {
+            if (!itens || itens.length === 0) {
+                alert('❌ Adicione pelo menos um item antes de enviar!');
+                return;
+            }
+
+            const dataRaw = getVal('dataEntrega');
+            const pedido = {
+                nome:            getVal('nome'),
+                telefone:        getVal('telefone'),
+                data:            converterDataParaBR(dataRaw),
+                dataEntrega:     converterDataParaBR(dataRaw),
+                hora:            getVal('horarioEntrega'),
+                tipoEntrega:     getVal('tipoEntrega'),
+                endereco: getVal('tipoEntrega') === 'entrega' ? {
+                    cep:         getVal('cep'),
+                    logradouro:  getVal('endereco'),
+                    numero:      getVal('numero'),
+                    bairro:      getVal('bairro'),
+                    cidade:      getVal('cidade'),
+                    complemento: getVal('pontoReferencia')
+                } : null,
+                itens:           itens,
+                valorBrigadeiros:parseFloat(getVal('valor').replace('R$ ','').replace(',','.')) || 0,
+                valorFrete:      parseFloat(getVal('valorFrete').replace('R$ ','').replace(',','.')) || 0,
+                valorTotal:      parseFloat(getVal('valorTotal').replace('R$ ','').replace(',','.')) || 0,
+                valorPago:       getVal('valorPago'),
+                statusPagamento: getVal('statusPagamento'),
+                observacoes:     getVal('observacoes'),
+                timestamp:       Date.now()
+            };
+
+            const chave = window.pedidoEmEdicao || ('pedidos/' + Date.now());
+            const refPath = window.pedidoEmEdicao ? 'pedidos/' + window.pedidoEmEdicao : chave;
+
+            database.ref(refPath).set(pedido).then(() => {
+                alert(window.pedidoEmEdicao ? '✅ Pedido atualizado!' : '✅ Pedido salvo!');
+                if (window.pedidoEmEdicao) {
+                    delete window.pedidoEmEdicao;
+                    document.getElementById('btnEnviar').textContent = '📲 Enviar para WhatsApp';
+                }
+
+                const msg = montarMensagem();
+                setTimeout(() => {
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    if (isMobile) {
+                        copiarParaClipboard(msg).then(ok => {
+                            alert(ok ? 'Mensagem copiada! Abra o WhatsApp e cole.' : 'Erro ao copiar. Tente novamente.');
+                        });
+                    } else {
+                        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                    }
+                }, 500);
+            }).catch(err => alert('❌ Erro ao salvar: ' + err.message));
+        }
+
+        // ===== CALENDÁRIO E PEDIDOS (Fase 3) =====
+        function toggleCalendario() {
+            const w   = document.getElementById('calendario-wrapper');
+            const btn = event.target;
+            if (w.style.display === 'none' || w.style.display === '') {
+                w.style.display = 'block';
+                btn.textContent = '📅 Fechar Calendário';
+                renderizarCalendario();
+            } else {
+                w.style.display = 'none';
+                btn.textContent = '📅 Ver Calendário';
+            }
+        }
+
+        // ===== PREÇOS (para cards) =====
+const PRECOS_CARD = {
+    'Amendoim':1.00,'Beijinho':1.00,'Brigadeiro':1.00,'Café':1.00,
+    'Dois Amores':1.00,'Leite Ninho':1.00,'Moranguinho':1.00,'Sensação':1.00,
+    'Chocolate Gourmet Branco':1.20,'Chocolate Gourmet Preto':1.20,
+    'Confete':1.20,'Churros':1.20,'Ferrero Rocher':1.20,
+    'Leite Ninho com Nutella':1.20,'Negresco':1.20,'Ovomaltine':1.20,'Prestígio':1.20
+};
+
+// ===== CARREGAR ANDAMENTO =====
+function carregarAndamento() {
+    const lista = document.getElementById('lista-andamento');
+    lista.innerHTML = '<p style="color:var(--marrom-medio);">Carregando...</p>';
+
+    database.ref('pedidos').once('value', snapshot => {
+        const pedidos = [];
+        snapshot.forEach(child => {
+            const p = child.val();
+            if (p.statusPagamento === 'entregue') return;
+            if (!p.dataEntrega) return;
+            p.key = child.key;
+            pedidos.push(p);
+        });
+
+        if (pedidos.length === 0) {
+            lista.innerHTML = '<p style="color:var(--marrom-medio);">Nenhum pedido em andamento.</p>';
+            return;
+        }
+
+        pedidos.sort((a, b) => {
+            const toDate = d => {
+                if (!d) return null;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return new Date(d + 'T00:00:00');
+                const p = d.split('/');
+                return p.length === 3 ? new Date(p[2], p[1]-1, p[0]) : null;
+            };
+            const da = toDate(a.dataEntrega), db = toDate(b.dataEntrega);
+            if (!da && !db) return 0;
+            if (!da) return 1;
+            if (!db) return -1;
+            return da - db;
+        });
+
+        lista.innerHTML = '';
+        pedidos.forEach(p => lista.appendChild(criarCard(p, p.key, false)));
+    });
+}
+
+// ===== CARREGAR FINALIZADOS =====
+function carregarFinalizados() {
+    const lista = document.getElementById('lista-finalizados');
+    lista.innerHTML = '<p style="color:var(--marrom-medio);">Carregando...</p>';
+
+    database.ref('pedidos').once('value', snapshot => {
+        const pedidos = [];
+        snapshot.forEach(child => {
+            const p = child.val();
+            if (p.statusPagamento !== 'entregue') return;
+            p.key = child.key;
+            pedidos.push(p);
+        });
+
+        if (pedidos.length === 0) {
+            lista.innerHTML = '<p style="color:var(--marrom-medio);">Nenhum pedido finalizado.</p>';
+            return;
+        }
+
+        lista.innerHTML = '';
+        pedidos.forEach(p => lista.appendChild(criarCard(p, p.key, true)));
+    });
+}
+
+// ===== CRIAR CARD =====
+function criarCard(pedido, key, finalizado) {
+    const card = document.createElement('div');
+    card.className = 'pedido-card';
+
+    const statusClass = finalizado ? 'status-entregue' : 'status-andamento';
+    const statusTexto = finalizado ? 'Entregue ✅' : (pedido.statusPagamento || 'A pagar');
+
+    const valorFormatado = typeof pedido.valorTotal === 'number'
+        ? 'R$ ' + pedido.valorTotal.toFixed(2).replace('.',',')
+        : (pedido.valorTotal || pedido.valor || 'R$ 0,00');
+
+    let itensHTML = '';
+    if (pedido.itens && Array.isArray(pedido.itens)) {
+        pedido.itens.forEach(item => {
+            const preco = PRECOS_CARD[item.sabor || item.nome] || 1.00;
+            const subtotal = ((item.quantidade || 0) * preco).toFixed(2).replace('.',',');
+            itensHTML += `
+                <div class="pedido-item-linha">
+                    • <strong>${item.sabor || item.nome || 'Item'}</strong> — Qtd: ${item.quantidade || 0}
+                    | ${item.formato || 'N/A'} | ${item.tipoForma || 'N/A'}/${item.cor || 'N/A'}
+                    | <strong>R$ ${subtotal}</strong>
+                </div>`;
+        });
+    }
+
+    const enderecoHTML = pedido.tipoEntrega === 'entrega' && pedido.endereco
+        ? `<div class="pedido-info"><strong>Endereço:</strong> ${pedido.endereco.logradouro}, ${pedido.endereco.numero} — ${pedido.endereco.bairro}, ${pedido.endereco.cidade}</div>`
+        : `<div class="pedido-info"><strong>Tipo:</strong> Retirada</div>`;
+
+    const valorPagoHTML = pedido.statusPagamento === 'Pago Parcialmente'
+        ? `<div class="pedido-info"><strong>Valor Pago:</strong> ${pedido.valorPago || 'N/A'}</div>` : '';
+
+    const botoesHTML = finalizado
+        ? `<button class="btn btn-marrom" onclick="toggleDetalhes('${key}')">ℹ️ Detalhes</button>`
+        : `
+            <button class="btn btn-marrom"   onclick="toggleDetalhes('${key}')">ℹ️ Detalhes</button>
+            <button class="btn btn-amarelo"  onclick="editarPedido('${key}')">✏️ Editar</button>
+            <button class="btn btn-laranja"  onclick="finalizarPedido('${key}')">✓ Finalizar</button>
+          `;
+
+    card.innerHTML = `
+        <div class="pedido-header">
+            <div class="pedido-nome">${pedido.nome || 'N/A'}</div>
+            <div class="pedido-status ${statusClass}">${statusTexto}</div>
+        </div>
+        <div class="pedido-resumo">
+            <div class="pedido-info"><strong>Telefone:</strong> ${pedido.telefone || 'N/A'}</div>
+            <div class="pedido-info"><strong>Data:</strong> ${converterDataParaBR(pedido.dataEntrega) || 'N/A'} ${pedido.hora ? 'às ' + pedido.hora : ''}</div>
+            <div class="pedido-info"><strong>Valor Total:</strong> ${valorFormatado}</div>
+        </div>
+        <div class="pedido-detalhes" id="detalhes-${key}" style="display:none;">
+            ${enderecoHTML}
+            <div class="pedido-itens-lista">${itensHTML || '<p>Sem itens</p>'}</div>
+            <div class="pedido-info"><strong>Observações:</strong> ${pedido.observacoes || 'Nenhuma'}</div>
+            <div class="pedido-info"><strong>Pagamento:</strong> ${pedido.statusPagamento || 'N/A'}</div>
+            ${valorPagoHTML}
+        </div>
+        <div class="pedido-botoes">${botoesHTML}</div>
+    `;
+    return card;
+}
+
+// ===== TOGGLE DETALHES =====
+function toggleDetalhes(key) {
+    const el = document.getElementById('detalhes-' + key);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ===== FINALIZAR PEDIDO =====
+function finalizarPedido(key) {
+    if (!confirm('Finalizar este pedido?')) return;
+    database.ref('pedidos/' + key).update({ statusPagamento: 'entregue' }).then(() => {
+        alert('✅ Pedido finalizado!');
+        carregarAndamento();
+        if (mesAtual !== undefined) renderizarCalendario();
+    }).catch(err => alert('Erro: ' + err.message));
+}
+
+// ===== EDITAR PEDIDO =====
+function editarPedido(key) {
+    database.ref('pedidos/' + key).once('value', snapshot => {
+        const data = snapshot.val();
+        if (!data) { alert('Pedido não encontrado!'); return; }
+
+        // Navegar para a seção criar
+        document.querySelectorAll('.secao').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('secao-criar').classList.add('active');
+        document.querySelector('.menu-btn').classList.add('active');
+        window.scrollTo(0, 0);
+
+        // Preencher campos
+        setVal('nome',            data.nome);
+        setVal('telefone',        data.telefone);
+        setVal('dataEntrega',     converterDataParaISO(data.dataEntrega));
+        setVal('horarioEntrega',  data.hora);
+        setVal('tipoEntrega',     data.tipoEntrega || 'retirada');
+        setVal('observacoes',     data.observacoes);
+        setVal('statusPagamento', data.statusPagamento);
+        setVal('valorPago',       data.valorPago);
+
+        // Endereço
+        if (data.tipoEntrega === 'entrega' && data.endereco) {
+            document.getElementById('enderecoFields').style.display = 'block';
+            ['cep','endereco','bairro','cidade','numero'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = false;
+            });
+            setVal('cep',            data.endereco.cep);
+            setVal('endereco',       data.endereco.logradouro);
+            setVal('numero',         data.endereco.numero);
+            setVal('bairro',         data.endereco.bairro);
+            setVal('cidade',         data.endereco.cidade);
+            setVal('pontoReferencia',data.endereco.complemento);
+        }
+
+        // Status pagamento
+        document.getElementById('valorPagoContainer').style.display =
+            data.statusPagamento === 'Pago Parcialmente' ? 'block' : 'none';
+
+        // Reconstruir itens
+        itens = [];
+        const itensList = document.getElementById('itensList');
+        itensList.innerHTML = '';
+
+        if (data.itens && Array.isArray(data.itens)) {
+            data.itens.forEach((item, idx) => {
+                itens.push({
+                    sabor:     item.sabor || item.nome,
+                    formato:   item.formato,
+                    tipoForma: item.tipoForma,
+                    cor:       item.cor,
+                    quantidade:item.quantidade
+                });
+
+                const preco    = PRECOS_CARD[item.sabor || item.nome] || 1.00;
+                const subtotal = ((item.quantidade || 0) * preco).toFixed(2).replace('.',',');
+
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <div class="item-info">
+                        <p><strong>${item.sabor || item.nome || 'Item'}</strong></p>
+                        <p>Qtd: ${item.quantidade} | B: ${item.formato} | F: ${item.tipoForma} | Cor: ${item.cor}</p>
+                        <p><strong>Subtotal: R$ ${subtotal}</strong></p>
+                    </div>
+                    <button class="btn-remove" onclick="removerItem(${idx})">Remover</button>
+                `;
+                itensList.appendChild(div);
+            });
+        }
+
+        // Recalcular valores
+        let totalBrig = 0;
+        itens.forEach(i => totalBrig += (PRECOS_CARD[i.sabor] || 1.00) * i.quantidade);
+        document.getElementById('valor').value = 'R$ ' + totalBrig.toFixed(2).replace('.',',');
+        setVal('valorFrete', formatarValor(data.valorFrete));
+        setTimeout(() => atualizarTotal(), 50);
+
+        // Alterar botão
+        const btn = document.getElementById('btnEnviar');
+        btn.textContent = '✏️ Atualizar Pedido';
+        window.pedidoEmEdicao = key;
+    });
+}
+
+// ===== CALENDÁRIO =====
+var mesAtual = new Date().getMonth();
+var anoAtual = new Date().getFullYear();
+
+function toggleCalendario() {
+    const w   = document.getElementById('calendario-wrapper');
+    const btn = event.target;
+    if (w.style.display === 'none' || w.style.display === '') {
+        w.style.display = 'block';
+        btn.textContent = '📅 Fechar Calendário';
+        renderizarCalendario();
+    } else {
+        w.style.display = 'none';
+        btn.textContent = '📅 Ver Calendário';
+    }
+}
+
+function renderizarCalendario() {
+    const container = document.getElementById('calendario-container');
+    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const dias  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+    let html = `
+        <div class="calendario-header">
+            <button class="btn-mes" onclick="mudarMes(-1)">← Anterior</button>
+            <h3>${meses[mesAtual]} de ${anoAtual}</h3>
+            <button class="btn-mes" onclick="mudarMes(1)">Próximo →</button>
+        </div>
+        <div class="calendario-grid">
+    `;
+
+    dias.forEach(d => html += `<div class="dia-semana">${d}</div>`);
+
+    const primeiro  = new Date(anoAtual, mesAtual, 1);
+    const diasAntes = primeiro.getDay();
+    const ultimoDia = new Date(anoAtual, mesAtual + 1, 0).getDate();
+
+    for (let i = 0; i < diasAntes; i++) html += `<div class="dia outro-mes"></div>`;
+
+    for (let dia = 1; dia <= ultimoDia; dia++) {
+        const dataStr = `${anoAtual}-${String(mesAtual+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+        html += `<div class="dia sem-pedidos" id="dia-${dia}" onclick="filtrarPorDia('${dataStr}')">
+                    <div class="dia-numero">${dia}</div>
+                 </div>`;
+    }
+
+    const diasDepois = 42 - (diasAntes + ultimoDia);
+    for (let i = 0; i < diasDepois; i++) html += `<div class="dia outro-mes"></div>`;
+
+    html += `</div>`;
+    container.innerHTML = html;
+
+    // Carregar contadores
+    setTimeout(() => {
+        database.ref('pedidos').once('value', snapshot => {
+            snapshot.forEach(child => {
+                const p = child.val();
+                if (p.statusPagamento === 'entregue' || !p.data) return;
+                const partes = p.data.split('/');
+                if (partes.length !== 3) return;
+                const dia = parseInt(partes[0]);
+                const mes = parseInt(partes[1]) - 1;
+                const ano = parseInt(partes[2]);
+                if (ano === anoAtual && mes === mesAtual) {
+                    const el = document.getElementById('dia-' + dia);
+                    if (el) {
+                        el.classList.remove('sem-pedidos');
+                        let cnt = el.querySelector('.dia-contador');
+                        if (!cnt) {
+                            cnt = document.createElement('div');
+                            cnt.className = 'dia-contador';
+                            cnt.textContent = '1';
+                            el.appendChild(cnt);
+                        } else {
+                            cnt.textContent = parseInt(cnt.textContent) + 1;
+                        }
+                    }
+                }
+            });
+        });
+    }, 100);
+}
+
+function mudarMes(dir) {
+    mesAtual += dir;
+    if (mesAtual < 0)  { mesAtual = 11; anoAtual--; }
+    if (mesAtual > 11) { mesAtual = 0;  anoAtual++; }
+    renderizarCalendario();
+}
+
+// ===== BADGE NOTIFICAÇÃO =====
+function verificarNotificacoes() {
+    const hoje  = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const amanha = new Date(hoje);
+    amanha.setDate(amanha.getDate() + 1);
+
+    database.ref('pedidos').once('value', snapshot => {
+        let count = 0;
+
+        snapshot.forEach(child => {
+            const p = child.val();
+            if (p.statusPagamento === 'entregue') return;
+            if (!p.dataEntrega) return;
+
+            // Converter para Date
+            let dataP;
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(p.dataEntrega)) {
+                const pts = p.dataEntrega.split('/');
+                dataP = new Date(pts[2], pts[1]-1, pts[0]);
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(p.dataEntrega)) {
+                const pts = p.dataEntrega.split('-');
+                dataP = new Date(pts[0], pts[1]-1, pts[2]);
+            } else return;
+
+            dataP.setHours(0, 0, 0, 0);
+
+            if (dataP.getTime() === hoje.getTime() ||
+                dataP.getTime() === amanha.getTime()) {
+                count++;
+            }
+        });
+
+        const btn = document.getElementById('btnAndamento');
+        if (!btn) return;
+
+        // Remove badge antigo se existir
+        const wrapper = btn.parentElement;
+        const badgeAntigo = wrapper.querySelector('.badge');
+        if (badgeAntigo) badgeAntigo.remove();
+
+        if (count > 0) {
+            const badge = document.createElement('div');
+            badge.className = 'badge';
+            badge.textContent = count > 9 ? '9+' : count;
+            wrapper.appendChild(badge);
+
+            // Botão fica levemente destacado
+            btn.style.background = 'white';
+            btn.style.color = 'var(--laranja)';
+        } else {
+            btn.style.background = '';
+            btn.style.color = '';
+        }
+    });
+}
+
+function filtrarPorDia(dataISO) {
+    const lista = document.getElementById('lista-andamento');
+
+    document.querySelectorAll('.secao').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('secao-andamento').classList.add('active');
+    document.querySelectorAll('.menu-btn')[1].classList.add('active');
+    window.scrollTo(0, 0);
+
+    database.ref('pedidos').once('value', snapshot => {
+        lista.innerHTML = '';
+        let encontrou = false;
+
+        snapshot.forEach(child => {
+            const p   = child.val();
+            if (p.statusPagamento === 'entregue') return;
+
+            let dataPedido = p.data || '';
+            if (dataPedido.includes('/')) {
+                const pts = dataPedido.split('/');
+                dataPedido = `${pts[2]}-${pts[1]}-${pts[0]}`;
+            }
+
+            if (dataPedido === dataISO) {
+                p.key = child.key;
+                lista.appendChild(criarCard(p, child.key, false));
+                encontrou = true;
+            }
+        });
+
+        if (!encontrou) {
+            const [ano, mes, dia] = dataISO.split('-');
+            lista.innerHTML = `<p style="color:var(--marrom-medio);">Nenhum pedido para ${dia}/${mes}/${ano}.</p>`;
+        }
+    });
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar notificações ao abrir
+    verificarNotificacoes();
+
+    // Endereço: inicia desabilitado
+    document.getElementById('enderecoFields').style.display = 'none';
+    ['cep','endereco','bairro','cidade','numero','pontoReferencia'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+    });
+
+    // Telefone
+    document.getElementById('telefone').addEventListener('input', function(e) {
+        e.target.value = maskTelefone(e.target.value);
+    });
+
+    // CEP
+    document.getElementById('cep').addEventListener('input', function(e) {
+        e.target.value = maskCEP(e.target.value);
+    });
+
+    // CEP autocomplete
+    document.getElementById('cep').addEventListener('blur', function() {
+        const cep = this.value.replace(/\D/g,'');
+        if (cep.length === 8) {
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.erro) {
+                        document.getElementById('endereco').value = d.logradouro;
+                        document.getElementById('bairro').value   = d.bairro;
+                        document.getElementById('cidade').value   = d.localidade;
+                    }
+                });
+        }
+    });
+
+    // Frete
+    document.getElementById('valorFrete').addEventListener('input', function(e) {
+        e.target.value = maskMoeda(e.target.value);
+        atualizarTotal();
+    });
+
+    // Valor pago
+    document.getElementById('valorPago').addEventListener('input', function(e) {
+        e.target.value = maskMoeda(e.target.value);
+    });
+
+    // Tipo entrega
+    document.getElementById('tipoEntrega').addEventListener('change', function() {
+        const isEntrega = this.value === 'entrega';
+        document.getElementById('enderecoFields').style.display = isEntrega ? 'block' : 'none';
+        ['cep','endereco','bairro','cidade','numero','pontoReferencia'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.disabled = !isEntrega; if (!isEntrega) el.value = ''; }
+        });
+    });
+
+    // Cor customizada
+    document.getElementById('cor').addEventListener('change', function() {
+        document.getElementById('corCustomizada').style.display =
+            this.value === 'Outra' ? 'block' : 'none';
+    });
+
+    // Quantidade customizada
+    document.getElementById('quantidade').addEventListener('change', function() {
+        document.getElementById('quantidadeCustomizada').style.display =
+            this.value === 'customizado' ? 'block' : 'none';
+    });
+
+    // Status pagamento
+    document.getElementById('statusPagamento').addEventListener('change', function() {
+        document.getElementById('valorPagoContainer').style.display =
+            this.value === 'Pago Parcialmente' ? 'block' : 'none';
+    });
+
+    // Data entrega
+    document.getElementById('dataEntrega').addEventListener('blur', function() {
+        const hoje = new Date().toISOString().split('T')[0];
+        if (this.value && this.value < hoje) {
+            alert('Data de entrega não pode ser anterior à data atual.');
+            this.value = '';
+        }
+    });
+
+    // Botão adicionar item
+    document.getElementById('btnAdicionarItem').addEventListener('click', adicionarItem);
+});
+    </script>
+</body>
+</html>
