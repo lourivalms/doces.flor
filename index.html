@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -207,6 +208,12 @@
 
         .item-info { flex: 1; line-height: 1.6; font-size: 0.88em; }
         .item-info p { margin: 1px 0; }
+
+        @keyframes itemEntrar {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.item { animation: itemEntrar 0.25s ease; }
 
         .btn-remove {
             background: #dc3545;
@@ -418,22 +425,192 @@
             pointer-events: none;
         }
 
-        /* ===== RESPONSIVO ===== */
-        @media (max-width: 600px) {
-            body { padding-top: 80px; }
-            #menu-fixo { padding: 0 12px; height: 75px; }
-            #logo-topo { height: 65px; }
-            .menu-btn { padding: 6px 9px; font-size: 0.72em; }
-            .linha-dupla { flex-direction: column; gap: 0; }
-            .linha-dupla > div.estreito { flex: 1; }
-            .pedido-header { flex-direction: column; align-items: flex-start; gap: 5px; }
-            .pedido-botoes .btn { min-width: 100%; }
-            .secao { padding: 0 10px 40px; }
-            .form-card { padding: 15px; }
+/* ===== RESPONSIVO — TABLETS (até 768px) ===== */
+        @media (max-width: 768px) {
+            .secao { max-width: 100%; margin: 15px auto; }
+            .pedido-botoes .btn { min-width: 120px; font-size: 0.78em; padding: 8px 8px; }
         }
+
+        /* ===== RESPONSIVO — MOBILE (até 600px) ===== */
+        @media (max-width: 600px) {
+            body { padding-top: 70px; }
+
+            /* Menu */
+            #menu-fixo {
+                padding: 0 10px;
+                height: 70px;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            #logo-topo { height: 54px; flex-shrink: 0; }
+            .menu-botoes {
+                display: flex;
+                flex-wrap: nowrap;
+                gap: 5px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 4px 2px;
+                scrollbar-width: none;
+            }
+            .menu-botoes::-webkit-scrollbar { display: none; }
+            .menu-btn {
+                padding: 5px 8px;
+                font-size: 0.68em;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            /* Seções */
+            .secao { padding: 0 10px 40px; margin: 12px auto; }
+            .secao-titulo { font-size: 1.2em; margin-bottom: 15px; }
+
+            /* Cards */
+            .form-card { padding: 14px 12px; margin-bottom: 14px; }
+            .form-card-titulo { font-size: 0.95em; }
+
+            /* Inputs */
+            input, select, textarea {
+                font-size: 16px; /* evita zoom automático no iOS */
+                padding: 10px 10px;
+                margin-bottom: 10px;
+            }
+            label { font-size: 0.85em; }
+            textarea { min-height: 70px; }
+
+            /* Linha dupla vira coluna */
+            .linha-dupla { flex-direction: column; gap: 0; }
+            .linha-dupla > div { width: 100%; }
+            .linha-dupla > div.estreito { flex: 1; width: 100%; }
+
+            /* Itens do pedido */
+            .item { flex-direction: column; gap: 8px; }
+            .btn-remove { width: 100%; text-align: center; padding: 8px; }
+
+            /* Cards de pedido */
+            .pedido-card { padding: 12px 10px; }
+            .pedido-header { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .pedido-nome { font-size: 1.05em; }
+            .pedido-status { font-size: 0.75em; }
+            .pedido-info { font-size: 0.84em; }
+            .pedido-resumo { padding: 8px 10px; }
+            .pedido-detalhes { padding: 8px 10px; }
+            .pedido-item-linha { font-size: 0.80em; }
+
+            /* Botões dos cards — dois por linha */
+            .pedido-botoes {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+            .pedido-botoes .btn {
+                min-width: unset;
+                width: 100%;
+                font-size: 0.78em;
+                padding: 9px 6px;
+                text-align: center;
+            }
+
+            /* Botão bloco */
+            .btn-bloco { font-size: 0.9em; padding: 11px; }
+
+            /* Calendário */
+            .calendario-header h3 { font-size: 0.95em; }
+            .btn-mes { padding: 6px 10px; font-size: 0.78em; }
+            .dia-numero { font-size: 0.78em; }
+            .dia-contador { width: 16px; height: 16px; font-size: 0.6em; }
+
+            /* Dashboard */
+            #dashboard-resultado .linha-dupla { flex-direction: row; gap: 8px; }
+            #dashboard-resultado .linha-dupla > div { flex: 1; }
+            #dashboard-resultado .linha-dupla p:last-child { font-size: 1.15em; }
+        }
+
+        /* ===== RESPONSIVO — MOBILE PEQUENO (até 380px) ===== */
+        @media (max-width: 380px) {
+            #logo-topo { height: 44px; }
+            .menu-btn { padding: 4px 6px; font-size: 0.62em; }
+            .secao-titulo { font-size: 1.05em; }
+            .pedido-botoes { grid-template-columns: 1fr; }
+            #dashboard-resultado .linha-dupla { flex-direction: column; }
+        }
+
+        @keyframes toastEntrar {
+        from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+        to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .chip-filtro {
+    padding: 5px 14px;
+    border: 2px solid var(--laranja-claro);
+    border-radius: 20px;
+    background: white;
+    color: var(--marrom-medio);
+    font-family: 'Lato', Arial, sans-serif;
+    font-size: 0.8em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.chip-filtro.active {
+    background: var(--laranja);
+    color: white;
+    border-color: var(--laranja);
+}
+.chip-filtro:hover:not(.active) {
+    border-color: var(--laranja);
+    color: var(--laranja-escuro);
+}
+
     </style>
 </head>
 <body>
+
+<!-- ===== TELA DE LOGIN ===== -->
+<div id="tela-login" style="
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: var(--bege);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+">
+    <div style="
+        background: white;
+        border: 2px solid var(--laranja-claro);
+        border-radius: 16px;
+        padding: 36px 28px;
+        width: 100%;
+        max-width: 360px;
+        box-shadow: 0 4px 24px rgba(232,114,74,0.12);
+        text-align: center;
+    ">
+        <img src="logo.png" alt="Doces Flor" style="height: 90px; margin-bottom: 20px; border-radius: 8px;">
+
+        <p style="font-family: 'Playfair Display', serif; font-size: 1.3em; color: var(--laranja-escuro); margin-bottom: 6px;">Bem-vinda!</p>
+        <p style="font-size: 0.85em; color: var(--marrom-medio); margin-bottom: 24px;">Entre para acessar seus pedidos.</p>
+
+        <input type="email" id="loginEmail" placeholder="E-mail" style="margin-bottom: 12px;">
+        <input type="password" id="loginSenha" placeholder="Senha">
+
+        <p id="loginErro" style="
+            color: #dc3545;
+            font-size: 0.82em;
+            margin: -6px 0 10px;
+            min-height: 18px;
+        "></p>
+
+        <button id="btnLogin" onclick="fazerLogin()" class="btn btn-laranja btn-bloco" style="margin-top: 4px;">
+            Entrar
+        </button>
+
+        <p style="font-size: 0.78em; color: var(--marrom-medio); margin-top: 18px;">
+            Esqueceu a senha? <a href="#" onclick="recuperarSenha()" style="color: var(--laranja-escuro); text-decoration: none; font-weight: 700;">Redefinir</a>
+        </p>
+    </div>
+</div>
 
     <!-- ===== MENU FIXO ===== -->
     <nav id="menu-fixo">
@@ -444,6 +621,8 @@
     <button class="menu-btn" id="btnAndamento" onclick="irPara('andamento', this)">📦 Andamento</button>
 </div>
             <button class="menu-btn" onclick="irPara('finalizados', this)">✅ Finalizados</button>
+            <button class="menu-btn" onclick="irPara('dashboard', this)">📊 Dashboard</button>
+            <button class="menu-btn" onclick="fazerLogout()">🚪 Sair</button>
         </div>
     </nav>
 
@@ -641,8 +820,15 @@
 
     <!-- ===== SEÇÃO 2: PEDIDOS EM ANDAMENTO ===== -->
     <section id="secao-andamento" class="secao">
-        <h2 class="secao-titulo">📦 Pedidos em Andamento</h2>
-        <button class="btn btn-marrom btn-bloco" onclick="toggleCalendario()">📅 Ver Calendário</button>
+    <h2 class="secao-titulo">📦 Pedidos em Andamento</h2>
+    <input type="text" id="buscaAndamento" placeholder="🔍 Buscar por nome do cliente..." style="margin-bottom: 12px;" oninput="filtrarAndamentoPorNome()">
+    <div id="filtros-status" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+    <button class="chip-filtro active" onclick="filtrarStatus('todos',this)">Todos</button>
+    <button class="chip-filtro" onclick="filtrarStatus('A pagar',this)">A pagar</button>
+    <button class="chip-filtro" onclick="filtrarStatus('Pago Parcialmente',this)">Parcial</button>
+    <button class="chip-filtro" onclick="filtrarStatus('Pago',this)">Pago</button>
+</div>
+    <button class="btn btn-marrom btn-bloco" onclick="toggleCalendario()">📅 Ver Calendário</button>
         <div id="calendario-wrapper">
             <div id="calendario-container"></div>
         </div>
@@ -654,6 +840,88 @@
         <h2 class="secao-titulo">✅ Pedidos Finalizados</h2>
         <div id="lista-finalizados"><p style="color:var(--marrom-medio);">Carregando...</p></div>
     </section>
+
+    <!-- ===== SEÇÃO 4: DASHBOARD ===== -->
+<section id="secao-dashboard" class="secao">
+    <h2 class="secao-titulo">📊 Dashboard</h2>
+
+    <div class="form-card">
+        <p class="form-card-titulo">📅 Período</p>
+        <div class="linha-dupla">
+            <div>
+                <label>Mês:</label>
+                <select id="dashMes">
+                    <option value="geral">Geral (ano todo)</option>
+                    <option value="0">Janeiro</option><option value="1">Fevereiro</option>
+                    <option value="2">Março</option><option value="3">Abril</option>
+                    <option value="4">Maio</option><option value="5">Junho</option>
+                    <option value="6">Julho</option><option value="7">Agosto</option>
+                    <option value="8">Setembro</option><option value="9">Outubro</option>
+                    <option value="10">Novembro</option><option value="11">Dezembro</option>
+                </select>
+            </div>
+            <div>
+                <label>Ano:</label>
+                <input type="number" id="dashAno" value="2026" min="2024" max="2030">
+            </div>
+        </div>
+        <button class="btn btn-laranja btn-bloco" onclick="carregarDashboard()">Gerar Relatório</button>
+    </div>
+
+    <div id="dashboard-resultado" style="display:none;">
+        <div class="form-card">
+            <p class="form-card-titulo">💰 Resumo Financeiro</p>
+            <div class="linha-dupla">
+                <div style="background:var(--bege);border-radius:8px;padding:14px;text-align:center;">
+                    <p style="font-size:0.78em;color:var(--marrom-medio);margin-bottom:4px;">Faturamento</p>
+                    <p id="dashFaturamento" style="font-size:1.4em;font-weight:700;color:var(--laranja-escuro);">R$ 0,00</p>
+                </div>
+                <div style="background:var(--bege);border-radius:8px;padding:14px;text-align:center;">
+                    <p style="font-size:0.78em;color:var(--marrom-medio);margin-bottom:4px;">Ticket Médio</p>
+                    <p id="dashTicket" style="font-size:1.4em;font-weight:700;color:var(--marrom-medio);">R$ 0,00</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <p class="form-card-titulo">📦 Pedidos</p>
+            <div class="linha-dupla">
+                <div style="background:var(--bege);border-radius:8px;padding:14px;text-align:center;cursor:pointer;" onclick="irParaPedidosDash('finalizados')" title="Ver pedidos entregues">
+                    <p style="font-size:0.78em;color:var(--marrom-medio);margin-bottom:4px;">Entregues</p>
+                    <p id="dashEntregues" style="font-size:1.4em;font-weight:700;color:var(--verde);text-decoration:underline dotted;">0</p>
+                </div>
+                <div style="background:var(--bege);border-radius:8px;padding:14px;text-align:center;cursor:pointer;" onclick="irParaPedidosDash('andamento')" title="Ver pedidos em andamento">
+                    <p style="font-size:0.78em;color:var(--marrom-medio);margin-bottom:4px;">Em Andamento</p>
+                    <p id="dashAndamento" style="font-size:1.4em;font-weight:700;color:var(--laranja);text-decoration:underline dotted;">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card">
+    <p class="form-card-titulo">🍫 Produção do Mês</p>
+    <div style="display:flex;gap:10px;">
+        <div style="flex:1;background:var(--bege);border-radius:8px;padding:14px;text-align:center;">
+            <p style="font-size:0.78em;color:var(--marrom-medio);margin-bottom:4px;">Total de Brigadeiros</p>
+            <p id="dashTotalBrig" style="font-size:1.4em;font-weight:700;color:var(--laranja-escuro);">0</p>
+        </div>
+        <div style="flex:1;background:var(--bege);border-radius:8px;padding:14px;text-align:center;">
+            <p style="font-size:0.78em;color:var(--marrom-medio);margin-bottom:4px;">Média por Pedido</p>
+            <p id="dashMediaBrig" style="font-size:1.4em;font-weight:700;color:var(--marrom-medio);">0</p>
+        </div>
+    </div>
+</div>
+
+        <div class="form-card">
+            <p class="form-card-titulo">🍫 Sabores Mais Vendidos</p>
+            <div id="dashSabores"></div>
+        </div>
+
+        <div class="form-card">
+            <p class="form-card-titulo">💳 Status de Pagamento</p>
+            <div id="dashPagamentos"></div>
+        </div>
+    </div>
+</section>
 
 <script>
         // ===== FIREBASE =====
@@ -668,6 +936,81 @@
         };
         firebase.initializeApp(firebaseConfig);
         var database = firebase.database();
+
+        function toast(msg, tipo) {
+    tipo = tipo || 'sucesso';
+    var cores = { sucesso: '#25d366', erro: '#dc3545', aviso: '#FFA500' };
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);'
+        + 'background:' + cores[tipo] + ';color:white;padding:12px 24px;'
+        + 'border-radius:24px;font-family:Lato,Arial,sans-serif;font-weight:700;'
+        + 'font-size:0.88em;z-index:99999;pointer-events:none;white-space:nowrap;'
+        + 'animation:toastEntrar 0.3s ease;box-shadow:0 4px 16px rgba(0,0,0,0.18);';
+    document.body.appendChild(t);
+    setTimeout(function() { t.remove(); }, 3000);
+}
+
+        // ===== AUTENTICAÇÃO =====
+var auth = firebase.auth();
+
+auth.onAuthStateChanged(function(user) {
+    if (user) {
+        document.getElementById('tela-login').style.display = 'none';
+        verificarNotificacoes();
+    } else {
+        document.getElementById('tela-login').style.display = 'flex';
+    }
+});
+
+function fazerLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const senha = document.getElementById('loginSenha').value;
+    const erro  = document.getElementById('loginErro');
+    const btn   = document.getElementById('btnLogin');
+
+    if (!email || !senha) {
+        erro.textContent = 'Preencha e-mail e senha.';
+        return;
+    }
+
+    btn.textContent = 'Entrando...';
+    btn.disabled = true;
+    erro.textContent = '';
+
+    auth.signInWithEmailAndPassword(email, senha)
+        .then(() => {
+            btn.textContent = 'Entrar';
+            btn.disabled = false;
+        })
+        .catch(e => {
+            btn.textContent = 'Entrar';
+            btn.disabled = false;
+            const msgs = {
+                'auth/user-not-found':    'E-mail não cadastrado.',
+                'auth/wrong-password':    'Senha incorreta.',
+                'auth/invalid-email':     'E-mail inválido.',
+                'auth/too-many-requests': 'Muitas tentativas. Tente mais tarde.',
+                'auth/invalid-credential':'E-mail ou senha incorretos.'
+            };
+            erro.textContent = msgs[e.code] || 'Erro ao entrar. Tente novamente.';
+        });
+}
+
+function recuperarSenha() {
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email) {
+        document.getElementById('loginErro').textContent = 'Digite seu e-mail acima primeiro.';
+        return;
+    }
+    auth.sendPasswordResetEmail(email)
+        .then(() => alert('📧 E-mail de redefinição enviado! Verifique sua caixa de entrada.'))
+        .catch(() => document.getElementById('loginErro').textContent = 'Não foi possível enviar o e-mail.');
+}
+
+function fazerLogout() {
+    if (confirm('Deseja sair?')) auth.signOut();
+}
 
         // ===== PREÇOS =====
         const PRECOS = {
@@ -688,8 +1031,13 @@
             document.getElementById('secao-' + secao).classList.add('active');
             if (btn) btn.classList.add('active');
             window.scrollTo(0, 0);
-            if (secao === 'andamento')   carregarAndamento();
-            if (secao === 'finalizados') carregarFinalizados();
+        if (secao === 'andamento')   carregarAndamento();
+        if (secao === 'finalizados') carregarFinalizados();
+        if (secao === 'dashboard')   {
+            const agora = new Date();
+            document.getElementById('dashMes').value = agora.getMonth();
+            document.getElementById('dashAno').value = agora.getFullYear();
+        }
         }
 
         // ===== MÁSCARAS =====
@@ -733,9 +1081,27 @@
             if (!cor)      { alert('Selecione uma cor.');      return; }
             if (!quantidade|| quantidade <= 0) { alert('Selecione a quantidade.'); return; }
 
-            itens.push({ sabor, formato, tipoForma, cor, quantidade });
+            itens.push({ id: Date.now() + Math.random(), sabor, formato, tipoForma, cor, quantidade });
             renderizarItens();
             atualizarValorBrigadeiros();
+
+            // Limpar campos do item após adicionar
+            document.getElementById('sabor').value      = '';
+            document.getElementById('formato').value    = '';
+            document.getElementById('tipoForma').value  = '';
+            document.getElementById('cor').value        = '';
+            document.getElementById('quantidade').value = '';
+            document.getElementById('corCustomizada').style.display        = 'none';
+            document.getElementById('quantidadeCustomizada').style.display = 'none';
+
+            // Feedback no botão
+            const btn = document.getElementById('btnAdicionarItem');
+            btn.textContent  = '✓ Item adicionado!';
+            btn.style.background = '#7A9E5F';
+            setTimeout(() => {
+                btn.textContent  = '+ Adicionar Item';
+                btn.style.background = '';
+            }, 1800);
         }
 
         function renderizarItens() {
@@ -743,10 +1109,7 @@
             list.innerHTML = '';
             const ordenados = [...itens].sort((a,b) => a.sabor.localeCompare(b.sabor));
             ordenados.forEach(item => {
-                const idxOriginal = itens.findIndex(i =>
-                    i.sabor===item.sabor && i.formato===item.formato &&
-                    i.tipoForma===item.tipoForma && i.cor===item.cor && i.quantidade===item.quantidade
-                );
+                const idxOriginal = itens.findIndex(i => i.id === item.id);
                 const preco    = PRECOS[item.sabor] || 1.00;
                 const subtotal = (preco * item.quantidade).toFixed(2).replace('.',',');
                 let nomeSabor  = item.sabor
@@ -761,17 +1124,17 @@
                         <p>Qtd: ${item.quantidade} | B: ${item.formato} | F: ${item.tipoForma} | Cor: ${item.cor}</p>
                         <p><strong>Subtotal: R$ ${subtotal}</strong> (R$ ${preco.toFixed(2).replace('.',',')} × ${item.quantidade})</p>
                     </div>
-                    <button class="btn-remove" onclick="removerItem(${idxOriginal})">Remover</button>
+                    <button class="btn-remove" onclick="removerItem('${item.id}')">Remover</button>
                 `;
                 list.appendChild(div);
             });
         }
 
-        function removerItem(idx) {
-            itens.splice(idx, 1);
-            renderizarItens();
-            atualizarValorBrigadeiros();
-        }
+            function removerItem(id) {
+                itens = itens.filter(i => i.id !== id);
+                renderizarItens();
+                atualizarValorBrigadeiros();
+            }
 
         function atualizarValorBrigadeiros() {
             let total = 0;
@@ -819,6 +1182,95 @@
             if (typeof v === 'number') return 'R$ ' + v.toFixed(2).replace('.',',');
             return v;
         }
+
+        // ===== LIMPAR FORMULÁRIO =====
+function limparFormulario() {
+    ['nome','telefone','dataEntrega','horarioEntrega','observacoes','valorFrete','valorPago'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    document.getElementById('tipoEntrega').value     = 'retirada';
+    document.getElementById('statusPagamento').value = 'A pagar';
+    document.getElementById('valor').value           = '';
+    document.getElementById('valorTotal').value      = '';
+    document.getElementById('enderecoFields').style.display   = 'none';
+    document.getElementById('valorPagoContainer').style.display = 'none';
+    document.getElementById('corCustomizada').style.display   = 'none';
+    document.getElementById('quantidadeCustomizada').style.display = 'none';
+    ['cep','endereco','bairro','cidade','numero','pontoReferencia'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.value = ''; el.disabled = true; }
+    });
+    itens = [];
+    document.getElementById('itensList').innerHTML = '';
+}
+
+// ===== REENVIAR WHATSAPP =====
+function reenviarWhatsApp(key) {
+    database.ref('pedidos/' + key).once('value', snapshot => {
+        const p = snapshot.val();
+        if (!p) { toast('Pedido não encontrado.', 'erro'); return; }
+
+        function abreviar(s) {
+            return (s || '').replace('Chocolate Gourmet Preto','Choc. G. Preto')
+                            .replace('Chocolate Gourmet Branco','Choc. G. Branco');
+        }
+
+        let msg = `Pedidos - Doces Flor\n\n`;
+        msg += `Nome: ${p.nome || ''}\n`;
+        msg += `Telefone: ${p.telefone || ''}\n`;
+        msg += `Data: ${p.dataEntrega || ''} às ${p.hora || ''}\n`;
+
+        if (p.tipoEntrega === 'entrega' && p.endereco) {
+            const e = p.endereco;
+            const link = `https://www.google.com/maps/search/${encodeURIComponent(`${e.logradouro}, ${e.numero}, ${e.bairro}, ${e.cidade}`)}`;
+            msg += `Endereço: ${e.logradouro}, ${e.numero}, ${e.bairro}, ${e.cidade}, CEP: ${e.cep} - ${link}\n`;
+            if (e.complemento) msg += `Complemento: ${e.complemento}\n`;
+        } else {
+            msg += `Tipo de Entrega: Retirada\n`;
+        }
+
+        msg += `──────────\nItens:\n`;
+
+        const itensP = p.itens || [];
+        const primeiro = itensP[0] || {};
+        const todosIguais = itensP.length > 1 && itensP.every(i =>
+            i.formato === primeiro.formato && i.tipoForma === primeiro.tipoForma && i.cor === primeiro.cor
+        );
+
+        if (itensP.length === 1) {
+            msg += `${abreviar(primeiro.sabor)} - Qtd:${primeiro.quantidade}\n`;
+            msg += `B: ${primeiro.formato} | F: ${primeiro.tipoForma}/${primeiro.cor}\n`;
+        } else if (todosIguais) {
+            itensP.forEach(i => msg += `${abreviar(i.sabor)} - Qtd:${i.quantidade}\n`);
+            msg += `\nBrigadeiro: ${primeiro.formato}\nForma: ${primeiro.tipoForma}/${primeiro.cor}\n`;
+        } else {
+            itensP.forEach((i, idx) => {
+                msg += `${abreviar(i.sabor)} - Qtd:${i.quantidade}\n`;
+                msg += `B: ${i.formato} | F: ${i.tipoForma}/${i.cor}\n`;
+                if (idx < itensP.length - 1) msg += `\n`;
+            });
+        }
+
+        msg += `──────────\n`;
+        const frete = p.valorFrete;
+        if (frete && frete > 0) {
+            msg += `Valor Brigadeiros: R$ ${(p.valorBrigadeiros || 0).toFixed(2).replace('.',',')}\n`;
+            msg += `Valor Frete: R$ ${frete.toFixed(2).replace('.',',')}\n`;
+        }
+        msg += `Valor Total: R$ ${(p.valorTotal || 0).toFixed(2).replace('.',',')}\n`;
+        msg += `Status Pagamento: ${p.statusPagamento || ''}\n`;
+        if (p.valorPago) msg += `Valor Pago: ${p.valorPago}\n`;
+        if (p.observacoes) msg += `\nObservações: ${p.observacoes}\n`;
+
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            navigator.clipboard.writeText(msg).then(() => toast('📋 Copiado! Abra o WhatsApp e cole.'));
+        } else {
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+    });
+}
 
         // ===== WHATSAPP =====
         function montarMensagem() {
@@ -917,7 +1369,7 @@
 
         function enviarWhatsApp() {
             if (!itens || itens.length === 0) {
-                alert('❌ Adicione pelo menos um item antes de enviar!');
+                toast('❌ Adicione pelo menos um item antes de enviar!');
                 return;
             }
 
@@ -951,38 +1403,28 @@
             const refPath = window.pedidoEmEdicao ? 'pedidos/' + window.pedidoEmEdicao : chave;
 
             database.ref(refPath).set(pedido).then(() => {
-                alert(window.pedidoEmEdicao ? '✅ Pedido atualizado!' : '✅ Pedido salvo!');
+                toast(window.pedidoEmEdicao ? '✅ Pedido atualizado!' : '✅ Pedido salvo!');
+
+                const msg = montarMensagem();
+
                 if (window.pedidoEmEdicao) {
                     delete window.pedidoEmEdicao;
                     document.getElementById('btnEnviar').textContent = '📲 Enviar para WhatsApp';
+                } else {
+                    limparFormulario();
                 }
 
-                const msg = montarMensagem();
                 setTimeout(() => {
                     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                     if (isMobile) {
                         copiarParaClipboard(msg).then(ok => {
-                            alert(ok ? 'Mensagem copiada! Abra o WhatsApp e cole.' : 'Erro ao copiar. Tente novamente.');
+                            toast(ok ? '📋 Copiado! Abra o WhatsApp e cole.' : 'Erro ao copiar. Tente novamente.', ok ? 'sucesso' : 'erro');
                         });
                     } else {
                         window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                     }
                 }, 500);
-            }).catch(err => alert('❌ Erro ao salvar: ' + err.message));
-        }
-
-        // ===== CALENDÁRIO E PEDIDOS (Fase 3) =====
-        function toggleCalendario() {
-            const w   = document.getElementById('calendario-wrapper');
-            const btn = event.target;
-            if (w.style.display === 'none' || w.style.display === '') {
-                w.style.display = 'block';
-                btn.textContent = '📅 Fechar Calendário';
-                renderizarCalendario();
-            } else {
-                w.style.display = 'none';
-                btn.textContent = '📅 Ver Calendário';
-            }
+            }).catch(err => toast('❌ Erro ao salvar: ' + err.message, 'erro'));
         }
 
         // ===== PREÇOS (para cards) =====
@@ -1047,10 +1489,24 @@ function carregarFinalizados() {
             pedidos.push(p);
         });
 
-        if (pedidos.length === 0) {
+if (pedidos.length === 0) {
             lista.innerHTML = '<p style="color:var(--marrom-medio);">Nenhum pedido finalizado.</p>';
             return;
         }
+
+        pedidos.sort((a, b) => {
+            const toDate = d => {
+                if (!d) return null;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return new Date(d + 'T00:00:00');
+                const p = d.split('/');
+                return p.length === 3 ? new Date(p[2], p[1]-1, p[0]) : null;
+            };
+            const da = toDate(a.dataEntrega), db = toDate(b.dataEntrega);
+            if (!da && !db) return 0;
+            if (!da) return 1;
+            if (!db) return -1;
+            return db - da; // mais recente primeiro
+        });
 
         lista.innerHTML = '';
         pedidos.forEach(p => lista.appendChild(criarCard(p, p.key, true)));
@@ -1091,11 +1547,17 @@ function criarCard(pedido, key, finalizado) {
         ? `<div class="pedido-info"><strong>Valor Pago:</strong> ${pedido.valorPago || 'N/A'}</div>` : '';
 
     const botoesHTML = finalizado
-        ? `<button class="btn btn-marrom" onclick="toggleDetalhes('${key}')">ℹ️ Detalhes</button>`
+        ? `
+            <button class="btn btn-marrom"   onclick="toggleDetalhes('${key}')">ℹ️ Detalhes</button>
+            <button class="btn btn-verde"    onclick="reenviarWhatsApp('${key}')">📲 Reenviar</button>
+            <button class="btn btn-vermelho" onclick="excluirPedido('${key}')">🗑️ Excluir</button>
+          `
         : `
             <button class="btn btn-marrom"   onclick="toggleDetalhes('${key}')">ℹ️ Detalhes</button>
             <button class="btn btn-amarelo"  onclick="editarPedido('${key}')">✏️ Editar</button>
+            <button class="btn btn-verde"    onclick="reenviarWhatsApp('${key}')">📲 Reenviar</button>
             <button class="btn btn-laranja"  onclick="finalizarPedido('${key}')">✓ Finalizar</button>
+            <button class="btn btn-vermelho" onclick="excluirPedido('${key}')">🗑️ Excluir</button>
           `;
 
     card.innerHTML = `
@@ -1128,19 +1590,43 @@ function toggleDetalhes(key) {
 
 // ===== FINALIZAR PEDIDO =====
 function finalizarPedido(key) {
-    if (!confirm('Finalizar este pedido?')) return;
-    database.ref('pedidos/' + key).update({ statusPagamento: 'entregue' }).then(() => {
-        alert('✅ Pedido finalizado!');
+    database.ref('pedidos/' + key).once('value', snapshot => {
+        const p = snapshot.val();
+        if (!p) return;
+
+        const statusAtual = p.statusPagamento || '';
+        const isPago = statusAtual === 'Pago';
+
+        let mensagem = 'Finalizar este pedido?';
+        if (!isPago) {
+            mensagem = `⚠️ Atenção: o pagamento está como "${statusAtual}".\n\nDeseja finalizar mesmo assim?`;
+        }
+
+        if (!confirm(mensagem)) return;
+        database.ref('pedidos/' + key).update({ statusPagamento: 'entregue' }).then(() => {
+        toast('✅ Pedido finalizado!');
+            carregarAndamento();
+            if (mesAtual !== undefined) renderizarCalendario();
+        }).catch(err => toast('Erro: ' + err.message, 'erro'));
+    });
+}
+
+// ===== EXCLUIR PEDIDO =====
+function excluirPedido(key) {
+    if (!confirm('⚠️ Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.')) return;
+    database.ref('pedidos/' + key).remove().then(() => {
+        toast('🗑️ Pedido excluído.');
         carregarAndamento();
+        carregarFinalizados();
         if (mesAtual !== undefined) renderizarCalendario();
-    }).catch(err => alert('Erro: ' + err.message));
+    }).catch(err => toast('Erro ao excluir: ' + err.message, 'erro'));
 }
 
 // ===== EDITAR PEDIDO =====
 function editarPedido(key) {
     database.ref('pedidos/' + key).once('value', snapshot => {
         const data = snapshot.val();
-        if (!data) { alert('Pedido não encontrado!'); return; }
+        if (!data) { toast('Pedido não encontrado.', 'erro'); return; }
 
         // Navegar para a seção criar
         document.querySelectorAll('.secao').forEach(s => s.classList.remove('active'));
@@ -1185,13 +1671,14 @@ function editarPedido(key) {
 
         if (data.itens && Array.isArray(data.itens)) {
             data.itens.forEach((item, idx) => {
-                itens.push({
-                    sabor:     item.sabor || item.nome,
-                    formato:   item.formato,
-                    tipoForma: item.tipoForma,
-                    cor:       item.cor,
-                    quantidade:item.quantidade
-                });
+                    itens.push({
+                        id:        Date.now() + Math.random(),
+                        sabor:     item.sabor || item.nome,
+                        formato:   item.formato,
+                        tipoForma: item.tipoForma,
+                        cor:       item.cor,
+                        quantidade:item.quantidade
+                    });
 
                 const preco    = PRECOS_CARD[item.sabor || item.nome] || 1.00;
                 const subtotal = ((item.quantidade || 0) * preco).toFixed(2).replace('.',',');
@@ -1224,6 +1711,42 @@ function editarPedido(key) {
     });
 }
 
+// ===== BUSCA ANDAMENTO =====
+function filtrarAndamentoPorNome() {
+    const termo     = document.getElementById('buscaAndamento').value.toLowerCase().trim();
+    const chipAtivo = document.querySelector('.chip-filtro.active');
+    const status    = chipAtivo ? chipAtivo.textContent.trim() : 'todos';
+
+    document.querySelectorAll('#lista-andamento .pedido-card').forEach(card => {
+        const nomeEl   = card.querySelector('.pedido-nome');
+        const statusEl = card.querySelector('.pedido-status');
+        if (!nomeEl) return;
+
+        const nomeOk   = !termo || nomeEl.textContent.toLowerCase().includes(termo);
+        const statusOk = status === 'Todos' || !statusEl || statusEl.textContent.trim() === status;
+
+        card.style.display = (nomeOk && statusOk) ? 'block' : 'none';
+    });
+}
+
+function filtrarStatus(status, btn) {
+    document.querySelectorAll('.chip-filtro').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const termo = document.getElementById('buscaAndamento').value.toLowerCase().trim();
+
+    document.querySelectorAll('#lista-andamento .pedido-card').forEach(card => {
+        const nomeEl   = card.querySelector('.pedido-nome');
+        const statusEl = card.querySelector('.pedido-status');
+        if (!nomeEl || !statusEl) return;
+
+        const nomeOk   = !termo || nomeEl.textContent.toLowerCase().includes(termo);
+        const statusOk = status === 'todos' || statusEl.textContent.trim() === status;
+
+        card.style.display = (nomeOk && statusOk) ? 'block' : 'none';
+    });
+}
+
 // ===== CALENDÁRIO =====
 var mesAtual = new Date().getMonth();
 var anoAtual = new Date().getFullYear();
@@ -1235,10 +1758,70 @@ function toggleCalendario() {
         w.style.display = 'block';
         btn.textContent = '📅 Fechar Calendário';
         renderizarCalendario();
+        filtrarAndamentoPorMes();
     } else {
         w.style.display = 'none';
         btn.textContent = '📅 Ver Calendário';
+        carregarAndamento();
     }
+}
+
+function filtrarAndamentoPorMes() {
+    const lista = document.getElementById('lista-andamento');
+    lista.innerHTML = '<p style="color:var(--marrom-medio);">Carregando...</p>';
+
+    database.ref('pedidos').once('value', snapshot => {
+        const pedidos = [];
+
+        snapshot.forEach(child => {
+            const p = child.val();
+            if (p.statusPagamento === 'entregue') return;
+            if (!p.dataEntrega) return;
+
+            let dataP;
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(p.dataEntrega)) {
+                const pts = p.dataEntrega.split('/');
+                dataP = new Date(pts[2], pts[1]-1, pts[0]);
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(p.dataEntrega)) {
+                const pts = p.dataEntrega.split('-');
+                dataP = new Date(pts[0], pts[1]-1, pts[2]);
+            } else return;
+
+            if (dataP.getMonth() !== mesAtual || dataP.getFullYear() !== anoAtual) return;
+
+            p.key = child.key;
+            pedidos.push(p);
+        });
+
+        if (pedidos.length === 0) {
+            const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                           'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+            lista.innerHTML = `<p style="color:var(--marrom-medio);">Nenhum pedido em andamento para ${meses[mesAtual]} de ${anoAtual}.</p>`;
+            return;
+        }
+
+        pedidos.sort((a, b) => {
+            const toDate = d => {
+                if (!d) return null;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return new Date(d + 'T00:00:00');
+                const p = d.split('/');
+                return p.length === 3 ? new Date(p[2], p[1]-1, p[0]) : null;
+            };
+            const da = toDate(a.dataEntrega), db = toDate(b.dataEntrega);
+            if (!da && !db) return 0;
+            if (!da) return 1;
+            if (!db) return -1;
+            return da - db;
+        });
+
+        lista.innerHTML = '';
+        pedidos.forEach(p => lista.appendChild(criarCard(p, p.key, false)));
+
+        // Resetar chips para "Todos"
+        document.querySelectorAll('.chip-filtro').forEach(b => b.classList.remove('active'));
+        const chipTodos = document.querySelector('.chip-filtro');
+        if (chipTodos) chipTodos.classList.add('active');
+    });
 }
 
 function renderizarCalendario() {
@@ -1279,15 +1862,22 @@ function renderizarCalendario() {
 
     // Carregar contadores
     setTimeout(() => {
-        database.ref('pedidos').once('value', snapshot => {
-            snapshot.forEach(child => {
-                const p = child.val();
-                if (p.statusPagamento === 'entregue' || !p.data) return;
-                const partes = p.data.split('/');
-                if (partes.length !== 3) return;
-                const dia = parseInt(partes[0]);
-                const mes = parseInt(partes[1]) - 1;
-                const ano = parseInt(partes[2]);
+database.ref('pedidos').once('value', snapshot => {
+    snapshot.forEach(child => {
+        const p = child.val();
+        const dataRef = p.dataEntrega || p.data;
+        if (p.statusPagamento === 'entregue' || !dataRef) return;
+        let partes;
+        if (dataRef.includes('/')) {
+            partes = dataRef.split('/');
+        } else if (dataRef.includes('-')) {
+            const pts = dataRef.split('-');
+            partes = [pts[2], pts[1], pts[0]];
+        } else return;
+        if (partes.length !== 3) return;
+        const dia = parseInt(partes[0]);
+        const mes = parseInt(partes[1]) - 1;
+        const ano = parseInt(partes[2]);
                 if (ano === anoAtual && mes === mesAtual) {
                     const el = document.getElementById('dia-' + dia);
                     if (el) {
@@ -1313,6 +1903,7 @@ function mudarMes(dir) {
     if (mesAtual < 0)  { mesAtual = 11; anoAtual--; }
     if (mesAtual > 11) { mesAtual = 0;  anoAtual++; }
     renderizarCalendario();
+    filtrarAndamentoPorMes();
 }
 
 // ===== BADGE NOTIFICAÇÃO =====
@@ -1386,11 +1977,11 @@ function filtrarPorDia(dataISO) {
         lista.innerHTML = '';
         let encontrou = false;
 
-        snapshot.forEach(child => {
+            snapshot.forEach(child => {
             const p   = child.val();
             if (p.statusPagamento === 'entregue') return;
 
-            let dataPedido = p.data || '';
+            let dataPedido = p.dataEntrega || p.data || '';
             if (dataPedido.includes('/')) {
                 const pts = dataPedido.split('/');
                 dataPedido = `${pts[2]}-${pts[1]}-${pts[0]}`;
@@ -1408,6 +1999,248 @@ function filtrarPorDia(dataISO) {
             lista.innerHTML = `<p style="color:var(--marrom-medio);">Nenhum pedido para ${dia}/${mes}/${ano}.</p>`;
         }
     });
+}
+
+// ===== DASHBOARD =====
+function carregarDashboard() {
+    const mesVal = document.getElementById('dashMes').value;
+    const mes    = mesVal === 'geral' ? null : parseInt(mesVal);
+    const ano    = parseInt(document.getElementById('dashAno').value);
+
+    database.ref('pedidos').once('value', snapshot => {
+        let faturamento  = 0;
+        let entregues    = 0;
+        let andamento    = 0;
+        const sabores    = {};
+        var totalBrigadeiros = 0;
+        const pagamentos = {};
+
+        snapshot.forEach(child => {
+            const p = child.val();
+            if (!p.dataEntrega) return;
+
+            // Converter data para objeto Date
+            let dataP;
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(p.dataEntrega)) {
+                const pts = p.dataEntrega.split('/');
+                dataP = new Date(pts[2], pts[1]-1, pts[0]);
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(p.dataEntrega)) {
+                const pts = p.dataEntrega.split('-');
+                dataP = new Date(pts[0], pts[1]-1, pts[2]);
+            } else return;
+
+            if (dataP.getFullYear() !== ano) return;
+            if (mes !== null && dataP.getMonth() !== mes) return;
+
+            const status     = p.statusPagamento || '';
+            const finalizado = status === 'entregue';
+            const pago       = status === 'Pago';
+            const parcial    = status === 'Pago Parcialmente';
+
+            // Contadores de pedidos
+            if (finalizado) {
+                entregues++;
+            } else {
+                andamento++;
+            }
+
+            // Função auxiliar para limpar qualquer formato de valor
+            function limparValor(v) {
+                if (v === null || v === undefined || v === '') return 0;
+                if (typeof v === 'number') return isNaN(v) ? 0 : v;
+                const str = String(v)
+                    .replace(/R\$\s*/g, '')
+                    .trim()
+                    .replace(/\./g, '')
+                    .replace(',', '.');
+                const num = parseFloat(str);
+                return isNaN(num) ? 0 : num;
+            }
+
+            // Faturamento: soma tudo que já foi recebido
+            if (finalizado || pago) {
+                faturamento += limparValor(p.valorTotal);
+            } else if (parcial) {
+                const vp = limparValor(p.valorPago);
+                const vt = limparValor(p.valorTotal);
+                faturamento += vp > 0 ? vp : vt;
+            }
+
+            // Status de pagamento (para o card de status)
+            pagamentos[status] = (pagamentos[status] || 0) + 1;
+
+            // Sabores
+            (p.itens || []).forEach(item => {
+                const nome = item.sabor || item.nome || 'Desconhecido';
+                sabores[nome] = (sabores[nome] || 0) + (parseInt(item.quantidade) || 0);
+                totalBrigadeiros += parseInt(item.quantidade) || 0;
+            });
+        });
+
+        const ticket = entregues > 0 ? faturamento / entregues : 0;
+
+        // Preencher métricas
+        document.getElementById('dashFaturamento').textContent = 'R$ ' + faturamento.toFixed(2).replace('.',',');
+        document.getElementById('dashTicket').textContent      = 'R$ ' + ticket.toFixed(2).replace('.',',');
+        document.getElementById('dashEntregues').textContent   = entregues;
+        document.getElementById('dashAndamento').textContent   = andamento;
+        var mediaBrig = (entregues + andamento) > 0
+    ? Math.round(totalBrigadeiros / (entregues + andamento))
+    : 0;
+document.getElementById('dashTotalBrig').textContent = totalBrigadeiros.toLocaleString('pt-BR');
+document.getElementById('dashMediaBrig').textContent = mediaBrig.toLocaleString('pt-BR');
+
+        // Sabores
+        const saboresOrdenados = Object.entries(sabores).sort((a,b) => b[1]-a[1]);
+        const maxSabor = saboresOrdenados[0]?.[1] || 1;
+        document.getElementById('dashSabores').innerHTML = saboresOrdenados.length === 0
+            ? '<p style="color:var(--marrom-medio);font-size:0.88em;">Nenhum dado.</p>'
+            : saboresOrdenados.map(([nome, qtd]) => `
+                <div style="margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.85em;margin-bottom:3px;">
+                        <span>${nome}</span><strong>${qtd} un.</strong>
+                    </div>
+                    <div style="background:var(--laranja-claro);border-radius:6px;height:8px;">
+                        <div style="background:var(--laranja);height:8px;border-radius:6px;width:${Math.round((qtd/maxSabor)*100)}%;"></div>
+                    </div>
+                </div>`).join('');
+
+        // Pagamentos
+        document.getElementById('dashPagamentos').innerHTML = Object.entries(pagamentos).length === 0
+            ? '<p style="color:var(--marrom-medio);font-size:0.88em;">Nenhum dado.</p>'
+            : Object.entries(pagamentos).map(([status, count]) => {
+                const nomes = {
+                    'entregue':           'Entregue',
+                    'A pagar':            'A pagar',
+                    'Pago Parcialmente':  'Pago Parcialmente',
+                    'Pago':               'Pago'
+                };
+                const label = nomes[status] || status;
+                return `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--laranja-claro);font-size:0.88em;">
+                    <span>${label}</span>
+                    <strong>${count} pedido${count > 1 ? 's' : ''}</strong>
+                </div>`;
+            }).join('');
+
+        document.getElementById('dashboard-resultado').style.display = 'block';
+    });
+}
+
+// ===== NAVEGAÇÃO DO DASHBOARD =====
+function irParaPedidosDash(tipo) {
+    const mes = parseInt(document.getElementById('dashMes').value);
+    const ano = parseInt(document.getElementById('dashAno').value);
+    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    document.querySelectorAll('.secao').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+
+    if (tipo === 'finalizados') {
+        document.getElementById('secao-finalizados').classList.add('active');
+        document.querySelectorAll('.menu-btn')[2].classList.add('active');
+        window.scrollTo(0, 0);
+
+        const lista = document.getElementById('lista-finalizados');
+        lista.innerHTML = '<p style="color:var(--marrom-medio);">Carregando...</p>';
+
+        database.ref('pedidos').once('value', snapshot => {
+            const pedidos = [];
+            snapshot.forEach(child => {
+                const p = child.val();
+                if (p.statusPagamento !== 'entregue') return;
+                if (!p.dataEntrega) return;
+
+                let dataP;
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(p.dataEntrega)) {
+                    const pts = p.dataEntrega.split('/');
+                    dataP = new Date(pts[2], pts[1]-1, pts[0]);
+                } else if (/^\d{4}-\d{2}-\d{2}$/.test(p.dataEntrega)) {
+                    const pts = p.dataEntrega.split('-');
+                    dataP = new Date(pts[0], pts[1]-1, pts[2]);
+                } else return;
+
+                if (dataP.getMonth() !== mes || dataP.getFullYear() !== ano) return;
+                p.key = child.key;
+                pedidos.push(p);
+            });
+
+            if (pedidos.length === 0) {
+                lista.innerHTML = `<p style="color:var(--marrom-medio);">Nenhum pedido entregue em ${meses[mes]} de ${ano}.</p>`;
+                return;
+            }
+
+            pedidos.sort((a, b) => {
+                const toDate = d => {
+                    if (!d) return null;
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return new Date(d + 'T00:00:00');
+                    const p = d.split('/');
+                    return p.length === 3 ? new Date(p[2], p[1]-1, p[0]) : null;
+                };
+                const da = toDate(a.dataEntrega), db = toDate(b.dataEntrega);
+                if (!da && !db) return 0;
+                if (!da) return 1;
+                if (!db) return -1;
+                return db - da;
+            });
+
+            lista.innerHTML = `<p style="color:var(--marrom-medio);font-size:0.85em;margin-bottom:12px;">📅 Filtrando: ${meses[mes]} de ${ano} — <a href="#" onclick="carregarFinalizados();return false;" style="color:var(--laranja-escuro);">ver todos</a></p>`;
+            pedidos.forEach(p => lista.appendChild(criarCard(p, p.key, true)));
+        });
+
+    } else {
+        document.getElementById('secao-andamento').classList.add('active');
+        document.querySelectorAll('.menu-btn')[1].classList.add('active');
+        window.scrollTo(0, 0);
+
+        const lista = document.getElementById('lista-andamento');
+        lista.innerHTML = '<p style="color:var(--marrom-medio);">Carregando...</p>';
+
+        database.ref('pedidos').once('value', snapshot => {
+            const pedidos = [];
+            snapshot.forEach(child => {
+                const p = child.val();
+                if (p.statusPagamento === 'entregue') return;
+                if (!p.dataEntrega) return;
+
+                let dataP;
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(p.dataEntrega)) {
+                    const pts = p.dataEntrega.split('/');
+                    dataP = new Date(pts[2], pts[1]-1, pts[0]);
+                } else if (/^\d{4}-\d{2}-\d{2}$/.test(p.dataEntrega)) {
+                    const pts = p.dataEntrega.split('-');
+                    dataP = new Date(pts[0], pts[1]-1, pts[2]);
+                } else return;
+
+                if (dataP.getMonth() !== mes || dataP.getFullYear() !== ano) return;
+                p.key = child.key;
+                pedidos.push(p);
+            });
+
+            if (pedidos.length === 0) {
+                lista.innerHTML = `<p style="color:var(--marrom-medio);">Nenhum pedido em andamento em ${meses[mes]} de ${ano}.</p>`;
+                return;
+            }
+
+            pedidos.sort((a, b) => {
+                const toDate = d => {
+                    if (!d) return null;
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return new Date(d + 'T00:00:00');
+                    const p = d.split('/');
+                    return p.length === 3 ? new Date(p[2], p[1]-1, p[0]) : null;
+                };
+                const da = toDate(a.dataEntrega), db = toDate(b.dataEntrega);
+                if (!da && !db) return 0;
+                if (!da) return 1;
+                if (!db) return -1;
+                return da - db;
+            });
+
+            lista.innerHTML = `<p style="color:var(--marrom-medio);font-size:0.85em;margin-bottom:12px;">📅 Filtrando: ${meses[mes]} de ${ano} — <a href="#" onclick="carregarAndamento();return false;" style="color:var(--laranja-escuro);">ver todos</a></p>`;
+            pedidos.forEach(p => lista.appendChild(criarCard(p, p.key, false)));
+        });
+    }
 }
 
 // ===== INIT =====
@@ -1498,6 +2331,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Botão adicionar item
     document.getElementById('btnAdicionarItem').addEventListener('click', adicionarItem);
+
+    // Bloquear datas passadas no seletor nativo (mobile)
+var inputData = document.getElementById('dataEntrega');
+var hoje = new Date().toISOString().split('T')[0];
+inputData.setAttribute('min', hoje);
 });
     </script>
 </body>
