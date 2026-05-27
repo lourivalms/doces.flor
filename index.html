@@ -562,6 +562,36 @@
     color: var(--laranja-escuro);
 }
 
+/* ===== SEÇÃO GASTOS ===== */
+#secao-gastos .form-card { margin-bottom: 16px; }
+
+.gasto-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--bege);
+    border: 1px solid var(--laranja-claro);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    animation: itemEntrar 0.25s ease;
+}
+
+.gasto-info { flex: 1; line-height: 1.6; font-size: 0.88em; }
+.gasto-info p { margin: 1px 0; }
+
+.gasto-categoria {
+    display: inline-block;
+    font-size: 0.75em;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    background: var(--laranja-claro);
+    color: var(--laranja-escuro);
+    margin-bottom: 3px;
+}
+
     </style>
 </head>
 <body>
@@ -622,6 +652,7 @@
 </div>
             <button class="menu-btn" onclick="irPara('finalizados', this)">✅ Finalizados</button>
             <button class="menu-btn" onclick="irPara('dashboard', this)">📊 Dashboard</button>
+            <button class="menu-btn" onclick="irPara('gastos', this)">💸 Gastos</button>
             <button class="menu-btn" onclick="fazerLogout()">🚪 Sair</button>
         </div>
     </nav>
@@ -842,6 +873,87 @@
         <div id="lista-finalizados"><p style="color:var(--marrom-medio);">Carregando...</p></div>
     </section>
 
+    <!-- ===== SEÇÃO 3.5: GASTOS ===== -->
+<section id="secao-gastos" class="secao">
+    <h2 class="secao-titulo">💸 Gastos</h2>
+
+    <!-- FORMULÁRIO -->
+    <div class="form-card">
+        <p class="form-card-titulo">➕ Novo Gasto</p>
+
+        <div class="linha-dupla">
+            <div>
+                <label for="gastoData">Data:</label>
+                <input type="date" id="gastoData">
+            </div>
+            <div>
+                <label for="gastoCategoria">Categoria:</label>
+                <select id="gastoCategoria">
+                    <option value="">Selecione</option>
+                    <option value="Ingredientes">🧴 Ingredientes</option>
+                    <option value="Embalagens">📦 Embalagens</option>
+                    <option value="Gás/Energia">🔥 Gás/Energia</option>
+                    <option value="Entrega">🚗 Entrega</option>
+                    <option value="Outros">📋 Outros</option>
+                </select>
+            </div>
+        </div>
+
+        <label for="gastoDescricao">Descrição:</label>
+        <input type="text" id="gastoDescricao" placeholder="Ex: Leite condensado, Creme de leite...">
+
+        <div class="linha-dupla">
+            <div>
+                <label for="gastoQuantidade">Quantidade:</label>
+                <input type="number" id="gastoQuantidade" placeholder="Ex: 2" min="1" step="1">
+            </div>
+            <div>
+                <label for="gastoValor">Valor Total (R$):</label>
+                <input type="text" id="gastoValor" placeholder="R$ 0,00">
+            </div>
+        </div>
+
+        <button class="btn btn-laranja btn-bloco" id="btnSalvarGasto" onclick="salvarGasto()">
+            💾 Salvar Gasto
+        </button>
+    </div>
+
+    <!-- FILTRO POR MÊS -->
+    <div class="form-card">
+        <p class="form-card-titulo">🔍 Filtrar</p>
+        <div class="linha-dupla">
+            <div>
+                <label>Mês:</label>
+                <select id="gastoFiltroMes">
+                    <option value="todos">Todos</option>
+                    <option value="0">Janeiro</option><option value="1">Fevereiro</option>
+                    <option value="2">Março</option><option value="3">Abril</option>
+                    <option value="4">Maio</option><option value="5">Junho</option>
+                    <option value="6">Julho</option><option value="7">Agosto</option>
+                    <option value="8">Setembro</option><option value="9">Outubro</option>
+                    <option value="10">Novembro</option><option value="11">Dezembro</option>
+                </select>
+            </div>
+            <div>
+                <label>Ano:</label>
+                <input type="number" id="gastoFiltroAno" value="2026" min="2024" max="2030">
+            </div>
+        </div>
+        <button class="btn btn-marrom btn-bloco" onclick="carregarGastos()">🔍 Filtrar</button>
+    </div>
+
+    <!-- TOTAL DO PERÍODO -->
+    <div id="gastoResumo" style="display:none; background:var(--branco); border:2px solid var(--laranja-claro); border-radius:12px; padding:16px; margin-bottom:16px; text-align:center; box-shadow:0 2px 10px rgba(232,114,74,0.08);">
+        <p style="font-size:0.8em; color:var(--marrom-medio); margin-bottom:4px;">Total de Gastos no Período</p>
+        <p id="gastoTotalPeriodo" style="font-size:1.8em; font-weight:700; color:var(--laranja-escuro);">R$ 0,00</p>
+    </div>
+
+    <!-- LISTA -->
+    <div id="lista-gastos">
+        <p style="color:var(--marrom-medio);">Nenhum gasto cadastrado ainda.</p>
+    </div>
+</section>
+
     <!-- ===== SEÇÃO 4: DASHBOARD ===== -->
 <section id="secao-dashboard" class="secao">
     <h2 class="secao-titulo">📊 Dashboard</h2>
@@ -872,7 +984,7 @@
     <div id="dashboard-resultado" style="display:none;">
         <div class="form-card">
             <p class="form-card-titulo">💰 Resumo Financeiro</p>
-            <div class="linha-dupla">
+            <div class="linha-dupla" style="margin-bottom:10px;">
                 <div style="background:var(--bege);border-radius:8px;padding:14px;text-align:center;">
                     <p style="font-size:0.78em;color:var(--marrom-medio);margin-bottom:4px;">Faturamento</p>
                     <p id="dashFaturamento" style="font-size:1.4em;font-weight:700;color:var(--laranja-escuro);">R$ 0,00</p>
@@ -880,6 +992,16 @@
                 <div style="background:var(--bege);border-radius:8px;padding:14px;text-align:center;">
                     <p style="font-size:0.78em;color:var(--marrom-medio);margin-bottom:4px;">Ticket Médio</p>
                     <p id="dashTicket" style="font-size:1.4em;font-weight:700;color:var(--marrom-medio);">R$ 0,00</p>
+                </div>
+            </div>
+            <div class="linha-dupla">
+                <div style="background:#fff3e0;border-radius:8px;padding:14px;text-align:center;">
+                    <p style="font-size:0.78em;color:#e65100;margin-bottom:4px;">Total de Gastos</p>
+                    <p id="dashGastos" style="font-size:1.4em;font-weight:700;color:#e65100;">R$ 0,00</p>
+                </div>
+                <div style="background:#e8f5e9;border-radius:8px;padding:14px;text-align:center;">
+                    <p style="font-size:0.78em;color:#2e7d32;margin-bottom:4px;">Lucro Líquido</p>
+                    <p id="dashLucro" style="font-size:1.4em;font-weight:700;color:#2e7d32;">R$ 0,00</p>
                 </div>
             </div>
         </div>
@@ -915,6 +1037,11 @@
         <div class="form-card">
             <p class="form-card-titulo">🍫 Sabores Mais Vendidos</p>
             <div id="dashSabores"></div>
+        </div>
+
+        <div class="form-card">
+            <p class="form-card-titulo">💸 Gastos por Categoria</p>
+            <div id="dashGastosCategorias"></div>
         </div>
 
         <div class="form-card">
@@ -1659,7 +1786,7 @@ function editarPedido(key) {
         }
 
         // Status pagamento
-        document.getElementById('valorPagoContainer').style.display =
+        document.getElementById('valorPagoContainer').style.display =   
             data.statusPagamento === 'Pago Parcialmente' ? 'block' : 'none';
 
         // Reconstruir itens
@@ -2005,6 +2132,19 @@ function carregarDashboard() {
     const mes    = mesVal === 'geral' ? null : parseInt(mesVal);
     const ano    = parseInt(document.getElementById('dashAno').value);
 
+                // Função auxiliar para limpar qualquer formato de valor
+            function limparValor(v) {
+                if (v === null || v === undefined || v === '') return 0;
+                if (typeof v === 'number') return isNaN(v) ? 0 : v;
+                const str = String(v)
+                    .replace(/R\$\s*/g, '')
+                    .trim()
+                    .replace(/\./g, '')
+                    .replace(',', '.');
+                const num = parseFloat(str);
+                return isNaN(num) ? 0 : num;
+            }
+            
     database.ref('pedidos').once('value', snapshot => {
         let faturamento  = 0;
         let entregues    = 0;
@@ -2042,19 +2182,6 @@ function carregarDashboard() {
                 andamento++;
             }
 
-            // Função auxiliar para limpar qualquer formato de valor
-            function limparValor(v) {
-                if (v === null || v === undefined || v === '') return 0;
-                if (typeof v === 'number') return isNaN(v) ? 0 : v;
-                const str = String(v)
-                    .replace(/R\$\s*/g, '')
-                    .trim()
-                    .replace(/\./g, '')
-                    .replace(',', '.');
-                const num = parseFloat(str);
-                return isNaN(num) ? 0 : num;
-            }
-
             // Faturamento: soma tudo que já foi recebido
             if (finalizado || pago) {
                 faturamento += limparValor(p.valorTotal);
@@ -2075,18 +2202,18 @@ function carregarDashboard() {
             });
         });
 
-        const ticket = entregues > 0 ? faturamento / entregues : 0;
+const ticket = entregues > 0 ? faturamento / entregues : 0;
 
-        // Preencher métricas
+        // Preencher métricas de pedidos
         document.getElementById('dashFaturamento').textContent = 'R$ ' + faturamento.toFixed(2).replace('.',',');
         document.getElementById('dashTicket').textContent      = 'R$ ' + ticket.toFixed(2).replace('.',',');
         document.getElementById('dashEntregues').textContent   = entregues;
         document.getElementById('dashAndamento').textContent   = andamento;
+
         var mediaBrig = (entregues + andamento) > 0
-    ? Math.round(totalBrigadeiros / (entregues + andamento))
-    : 0;
-document.getElementById('dashTotalBrig').textContent = totalBrigadeiros.toLocaleString('pt-BR');
-document.getElementById('dashMediaBrig').textContent = mediaBrig.toLocaleString('pt-BR');
+            ? Math.round(totalBrigadeiros / (entregues + andamento)) : 0;
+        document.getElementById('dashTotalBrig').textContent  = totalBrigadeiros.toLocaleString('pt-BR');
+        document.getElementById('dashMediaBrig').textContent  = mediaBrig.toLocaleString('pt-BR');
 
         // Sabores
         const saboresOrdenados = Object.entries(sabores).sort((a,b) => b[1]-a[1]);
@@ -2106,23 +2233,66 @@ document.getElementById('dashMediaBrig').textContent = mediaBrig.toLocaleString(
         // Pagamentos
         document.getElementById('dashPagamentos').innerHTML = Object.entries(pagamentos).length === 0
             ? '<p style="color:var(--marrom-medio);font-size:0.88em;">Nenhum dado.</p>'
-            : Object.entries(pagamentos).map(([status, count]) => {
-                const nomes = {
-                    'entregue':           'Entregue',
-                    'A pagar':            'A pagar',
-                    'Pago Parcialmente':  'Pago Parcialmente',
-                    'Pago':               'Pago'
-                };
-                const label = nomes[status] || status;
+            : Object.entries(pagamentos).map(([statusKey, qtd]) => {
+                const nomes = { 'entregue':'Entregue','A pagar':'A pagar','Pago Parcialmente':'Pago Parcialmente','Pago':'Pago' };
                 return `
                 <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--laranja-claro);font-size:0.88em;">
-                    <span>${label}</span>
-                    <strong>${count} pedido${count > 1 ? 's' : ''}</strong>
+                    <span>${nomes[statusKey] || statusKey}</span>
+                    <strong>${qtd} pedido${qtd > 1 ? 's' : ''}</strong>
                 </div>`;
             }).join('');
 
-        document.getElementById('dashboard-resultado').style.display = 'block';
-    });
+        // ===== BUSCAR GASTOS DO PERÍODO =====
+        database.ref('gastos').once('value', snapGastos => {
+            let totalGastos = 0;
+            const categorias = {};
+
+            snapGastos.forEach(child => {
+                const g = child.val();
+                if (!g.data) return;
+
+                let dataG;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(g.data)) {
+                    const pts = g.data.split('-');
+                    dataG = new Date(pts[0], pts[1]-1, pts[2]);
+                } else return;
+
+                if (dataG.getFullYear() !== ano) return;
+                if (mes !== null && dataG.getMonth() !== mes) return;
+
+                totalGastos += g.valor || 0;
+                const cat = g.categoria || 'Outros';
+                categorias[cat] = (categorias[cat] || 0) + (g.valor || 0);
+            });
+
+            const lucro = faturamento - totalGastos;
+
+            document.getElementById('dashGastos').textContent =
+                'R$ ' + totalGastos.toFixed(2).replace('.',',');
+            document.getElementById('dashLucro').textContent =
+                'R$ ' + lucro.toFixed(2).replace('.',',');
+            document.getElementById('dashLucro').style.color =
+                lucro >= 0 ? '#2e7d32' : '#dc3545';
+
+            // Breakdown por categoria
+            const catOrdenadas = Object.entries(categorias).sort((a,b) => b[1]-a[1]);
+            const maxCat = catOrdenadas[0]?.[1] || 1;
+            document.getElementById('dashGastosCategorias').innerHTML = catOrdenadas.length === 0
+                ? '<p style="color:var(--marrom-medio);font-size:0.88em;">Nenhum gasto no período.</p>'
+                : catOrdenadas.map(([cat, val]) => `
+                    <div style="margin-bottom:10px;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.85em;margin-bottom:3px;">
+                            <span>${cat}</span>
+                            <strong>R$ ${val.toFixed(2).replace('.',',')}</strong>
+                        </div>
+                        <div style="background:var(--laranja-claro);border-radius:6px;height:8px;">
+                            <div style="background:#e65100;height:8px;border-radius:6px;width:${Math.round((val/maxCat)*100)}%;"></div>
+                        </div>
+                    </div>`).join('');
+
+            document.getElementById('dashboard-resultado').style.display = 'block';
+        });
+    }); // fecha database.ref('pedidos')
 }
 
 // ===== NAVEGAÇÃO DO DASHBOARD =====
@@ -2239,6 +2409,126 @@ function irParaPedidosDash(tipo) {
             pedidos.forEach(p => lista.appendChild(criarCard(p, p.key, false)));
         });
     }
+}
+
+// ===== GASTOS =====
+
+function salvarGasto() {
+    const data       = document.getElementById('gastoData').value;
+    const categoria  = document.getElementById('gastoCategoria').value;
+    const descricao  = document.getElementById('gastoDescricao').value.trim();
+    const quantidade = parseInt(document.getElementById('gastoQuantidade').value) || 1;
+    const valorRaw   = document.getElementById('gastoValor').value;
+    const valor      = parseFloat(valorRaw.replace('R$','').replace(',','.').trim()) || 0;
+
+    if (!data)       { toast('Informe a data do gasto.', 'erro'); return; }
+    if (!categoria)  { toast('Selecione uma categoria.', 'erro'); return; }
+    if (!descricao)  { toast('Informe uma descrição.', 'erro'); return; }
+    if (valor <= 0)  { toast('Informe um valor válido.', 'erro'); return; }
+
+    const gasto = { data, categoria, descricao, quantidade, valor, timestamp: Date.now() };
+
+    const btn = document.getElementById('btnSalvarGasto');
+    btn.textContent = 'Salvando...';
+    btn.disabled = true;
+
+    database.ref('gastos').push(gasto).then(() => {
+        toast('✅ Gasto salvo!');
+        // Limpar formulário
+        document.getElementById('gastoData').value       = '';
+        document.getElementById('gastoCategoria').value  = '';
+        document.getElementById('gastoDescricao').value  = '';
+        document.getElementById('gastoQuantidade').value = '';
+        document.getElementById('gastoValor').value      = '';
+        btn.textContent = '💾 Salvar Gasto';
+        btn.disabled = false;
+        carregarGastos();
+    }).catch(err => {
+        toast('Erro ao salvar: ' + err.message, 'erro');
+        btn.textContent = '💾 Salvar Gasto';
+        btn.disabled = false;
+    });
+}
+
+function carregarGastos() {
+    const lista  = document.getElementById('lista-gastos');
+    const resumo = document.getElementById('gastoResumo');
+    const mesVal = document.getElementById('gastoFiltroMes').value;
+    const ano    = parseInt(document.getElementById('gastoFiltroAno').value);
+
+    lista.innerHTML = '<p style="color:var(--marrom-medio);">Carregando...</p>';
+
+    database.ref('gastos').once('value', snapshot => {
+        const gastos = [];
+
+        snapshot.forEach(child => {
+            const g = child.val();
+            g.key = child.key;
+
+            if (mesVal !== 'todos') {
+                const mes = parseInt(mesVal);
+                let dataG;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(g.data)) {
+                    const pts = g.data.split('-');
+                    dataG = new Date(pts[0], pts[1]-1, pts[2]);
+                } else return;
+                if (dataG.getFullYear() !== ano || dataG.getMonth() !== mes) return;
+            }
+
+            gastos.push(g);
+        });
+
+        gastos.sort((a, b) => {
+            const da = new Date(a.data), db = new Date(b.data);
+            return db - da;
+        });
+
+        if (gastos.length === 0) {
+            lista.innerHTML = '<p style="color:var(--marrom-medio);">Nenhum gasto encontrado para este período.</p>';
+            resumo.style.display = 'none';
+            return;
+        }
+
+        let total = 0;
+        lista.innerHTML = '';
+        gastos.forEach(g => {
+            total += g.valor || 0;
+            lista.appendChild(criarCardGasto(g));
+        });
+
+        document.getElementById('gastoTotalPeriodo').textContent =
+            'R$ ' + total.toFixed(2).replace('.',',');
+        resumo.style.display = 'block';
+    });
+}
+
+function criarCardGasto(g) {
+    const div = document.createElement('div');
+    div.className = 'gasto-item';
+
+    const dataFormatada = g.data
+        ? g.data.split('-').reverse().join('/')
+        : 'N/A';
+
+    const valorFormatado = 'R$ ' + (g.valor || 0).toFixed(2).replace('.',',');
+
+    div.innerHTML = `
+        <div class="gasto-info">
+            <span class="gasto-categoria">${g.categoria || 'Outros'}</span>
+            <p><strong>${g.descricao || 'Sem descrição'}</strong></p>
+            <p>📅 ${dataFormatada} &nbsp;|&nbsp; Qtd: ${g.quantidade || 1} &nbsp;|&nbsp; <strong>${valorFormatado}</strong></p>
+        </div>
+        <button class="btn-remove" onclick="excluirGasto('${g.key}')">Excluir</button>
+    `;
+    return div;
+}
+
+function excluirGasto(key) {
+    if (!confirm('Excluir este gasto?')) return;
+    database.ref('gastos/' + key).remove().then(() => {
+        toast('🗑️ Gasto excluído.');
+        carregarGastos();
+    }).catch(err => toast('Erro: ' + err.message, 'erro'));
 }
 
 // ===== INIT =====
