@@ -1046,7 +1046,7 @@
             </div>
             <div>
                 <label for="gastoCategoria">Categoria:</label>
-                <select id="gastoCategoria">
+                <select id="gastoCategoria" onchange="atualizarDescricaoGasto()">
                     <option value="">Selecione</option>
                     <option value="Ingredientes">🧴 Ingredientes</option>
                     <option value="Embalagens">📦 Embalagens</option>
@@ -1058,7 +1058,9 @@
         </div>
 
         <label for="gastoDescricao">Descrição:</label>
-        <input type="text" id="gastoDescricao" placeholder="Ex: Leite condensado, Creme de leite...">
+        <select id="gastoDescricao">
+        <option value="">Selecione uma opção</option>
+        </select>
 
         <div class="linha-dupla">
             <div>
@@ -2619,8 +2621,112 @@ function irParaPedidosDash(tipo) {
     }
 }
 
-// ===== GASTOS =====
+// ===== DESCRIÇÃO DINÂMICA POR CATEGORIA =====
+function atualizarDescricaoGasto() {
+    const categoria = document.getElementById('gastoCategoria').value;
+    const select    = document.getElementById('gastoDescricao');
 
+    const opcoes = {
+        'Ingredientes': [
+            'Leite condensado',
+            'Creme de leite',
+            'Chocolate em pó (Nescau/Toddy)',
+            'Chocolate granulado',
+            'Manteiga',
+            'Margarina',
+            'Leite em pó',
+            'Leite Ninho',
+            'Açúcar refinado',
+            'Açúcar cristal',
+            'Glucose de milho',
+            'Cobertura fracionada (chocolate)',
+            'Cobertura fracionada (branco)',
+            'Cobertura fracionada (morango)',
+            'Cobertura fracionada (limão)',
+            'Chantilly',
+            'Essência de baunilha',
+            'Essência de leite Ninho',
+            'Corante alimentício',
+            'Coco ralado',
+            'Castanha de caju',
+            'Amendoim torrado',
+            'Nozes picadas',
+            'Farinha de amêndoas',
+            'Doce de leite',
+            'Goiabada',
+            'Oreo triturado',
+            'Confeitos coloridos',
+            'Cacau em pó',
+            'Creme de avelã (Nutella)',
+            'Óleo de coco',
+            'Gelatina sem sabor',
+            'Leite condensado diet',
+            'Creme de leite diet'
+        ],
+        'Embalagens': [
+            'Potinho plástico 50ml',
+            'Potinho plástico 100ml',
+            'Vasilha para brigadeiro 200ml',
+            'Caixa para 6 brigadeiros',
+            'Caixa para 12 brigadeiros',
+            'Caixa para 20 brigadeiros',
+            'Caixa para 30 brigadeiros',
+            'Forminha papel redonda',
+            'Forminha papel quadrada',
+            'Forminha papel coração',
+            'Forminha papel flor',
+            'Saquinho celofane',
+            'Saquinho kraft',
+            'Sacola kraft pequena',
+            'Sacola kraft média',
+            'Sacola plástica com zíper',
+            'Etiqueta adesiva',
+            'Adesivo de selo',
+            'Fita de cetim',
+            'Laço de fita',
+            'Papel seda',
+            'Papel de arroz',
+            'Tag personalizada',
+            'Embalagem térmica para entrega',
+            'Caixa de papelão (transporte)',
+            'Papel filme / bobina'
+        ],
+        'Gás/Energia': [
+            'Gás de cozinha (GLP)',
+            'Conta de energia elétrica',
+            'Conta de água',
+            'Manutenção fogão'
+        ],
+        'Entrega': [
+            'Taxa de entrega (motoboy)',
+            'Combustível',
+            'Estacionamento',
+            'Pedágio',
+            'Aplicativo de entrega'
+        ],
+        'Outros': [
+            'Impostos',
+            'Taxas',
+            'Uniforme',
+            'Equipamentos',
+            'Material de limpeza',
+            'Divulgação / Marketing'
+        ]
+    };
+
+    const itens = opcoes[categoria] || [];
+
+    // Limpa o select e adiciona as opções
+        select.innerHTML = '<option value="">Selecione uma opção</option>';
+        itens.sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item;
+            opt.textContent = item;
+            select.appendChild(opt);
+        });
+}
+
+// ===== GASTOS =====
 function salvarGasto() {
     const data       = document.getElementById('gastoData').value;
     const categoria  = document.getElementById('gastoCategoria').value;
@@ -2645,7 +2751,7 @@ function salvarGasto() {
         // Limpar formulário
         document.getElementById('gastoData').value       = '';
         document.getElementById('gastoCategoria').value  = '';
-        document.getElementById('gastoDescricao').value  = '';
+        document.getElementById('gastoDescricao').innerHTML = '<option value="">Selecione uma opção</option>';
         document.getElementById('gastoQuantidade').value = '';
         document.getElementById('gastoValor').value      = '';
         btn.textContent = '💾 Salvar Gasto';
