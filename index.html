@@ -535,6 +535,140 @@
             #dashboard-resultado .linha-dupla { flex-direction: column; }
         }
 
+        /* ===== MENU HAMBURGUER ===== */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            flex-shrink: 0;
+            z-index: 1100;
+        }
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 3px;
+            background: white;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        .hamburger.aberto span:nth-child(1) {
+            transform: translateY(8px) rotate(45deg);
+        }
+        .hamburger.aberto span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.aberto span:nth-child(3) {
+            transform: translateY(-8px) rotate(-45deg);
+        }
+
+        .gaveta-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1050;
+        }
+        .gaveta-overlay.visivel { display: block; }
+
+        .gaveta {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 260px;
+            height: 100%;
+            background: var(--marrom);
+            z-index: 1060;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            transition: right 0.3s ease;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+        }
+        .gaveta.aberta { right: 0; }
+
+        .gaveta-header {
+            background: var(--laranja);
+            padding: 20px 18px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .gaveta-header img {
+            height: 48px;
+            border-radius: 6px;
+        }
+        .gaveta-fechar {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px 8px;
+        }
+
+        .gaveta-nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 0;
+            overflow-y: auto;
+        }
+
+        .gaveta-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-family: 'Lato', Arial, sans-serif;
+            font-size: 0.95em;
+            font-weight: 700;
+            text-align: left;
+            padding: 14px 22px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 4px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+        .gaveta-btn:hover { background: rgba(255,255,255,0.1); }
+        .gaveta-btn.active {
+            background: rgba(232,114,74,0.25);
+            border-left-color: var(--laranja);
+            color: var(--laranja-claro);
+        }
+
+        .gaveta-badge {
+            background: white;
+            color: var(--marrom);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+        }
+
+        .gaveta-separador {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin: 8px 16px;
+        }
+
+        @media (max-width: 600px) {
+            .hamburger { display: flex; }
+            .menu-botoes { display: none !important; }
+        }
+
         @keyframes toastEntrar {
         from { opacity: 0; transform: translateX(-50%) translateY(12px); }
         to   { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -642,20 +776,44 @@
     </div>
 </div>
 
-    <!-- ===== MENU FIXO ===== -->
+<!-- ===== MENU FIXO ===== -->
     <nav id="menu-fixo">
         <img src="logo.png" id="logo-topo" alt="Doces Flor">
         <div class="menu-botoes">
             <button class="menu-btn active" onclick="irPara('criar', this)">➕ Novo Pedido</button>
             <div class="menu-btn-wrapper">
-    <button class="menu-btn" id="btnAndamento" onclick="irPara('andamento', this)">📦 Andamento</button>
-</div>
+                <button class="menu-btn" id="btnAndamento" onclick="irPara('andamento', this)">📦 Andamento</button>
+            </div>
             <button class="menu-btn" onclick="irPara('finalizados', this)">✅ Finalizados</button>
             <button class="menu-btn" onclick="irPara('dashboard', this)">📊 Dashboard</button>
             <button class="menu-btn" onclick="irPara('gastos', this)">💸 Gastos</button>
             <button class="menu-btn" onclick="fazerLogout()">🚪 Sair</button>
         </div>
+        <button class="hamburger" id="btnHamburger" onclick="toggleGaveta()" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
     </nav>
+
+    <!-- ===== GAVETA ===== -->
+    <div class="gaveta-overlay" id="gavetaOverlay" onclick="fecharGaveta()"></div>
+    <div class="gaveta" id="gaveta">
+        <div class="gaveta-header">
+            <img src="logo.png" alt="Doces Flor">
+            <button class="gaveta-fechar" onclick="fecharGaveta()">✕</button>
+        </div>
+        <nav class="gaveta-nav">
+            <button class="gaveta-btn active" id="gbtnCriar" onclick="irParaGaveta('criar')">➕ Novo Pedido</button>
+            <button class="gaveta-btn" id="gbtnAndamento" onclick="irParaGaveta('andamento')">
+                📦 Andamento
+                <span class="gaveta-badge" id="gavetaBadge" style="display:none;"></span>
+            </button>
+            <button class="gaveta-btn" id="gbtnFinalizados" onclick="irParaGaveta('finalizados')">✅ Finalizados</button>
+            <button class="gaveta-btn" id="gbtnDashboard" onclick="irParaGaveta('dashboard')">📊 Dashboard</button>
+            <button class="gaveta-btn" id="gbtnGastos" onclick="irParaGaveta('gastos')">💸 Gastos</button>
+            <hr class="gaveta-separador">
+            <button class="gaveta-btn" onclick="fazerLogout(); fecharGaveta();">🚪 Sair</button>
+        </nav>
+    </div>
 
 <!-- ===== SEÇÃO 1: CRIAR PEDIDO ===== -->
     <section id="secao-criar" class="secao active">
@@ -2031,6 +2189,52 @@ function mudarMes(dir) {
     filtrarAndamentoPorMes();
 }
 
+// ===== GAVETA =====
+function toggleGaveta() {
+    const gaveta  = document.getElementById('gaveta');
+    const overlay = document.getElementById('gavetaOverlay');
+    const btn     = document.getElementById('btnHamburger');
+    const aberta  = gaveta.classList.contains('aberta');
+    if (aberta) {
+        fecharGaveta();
+    } else {
+        gaveta.classList.add('aberta');
+        overlay.classList.add('visivel');
+        btn.classList.add('aberto');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function fecharGaveta() {
+    document.getElementById('gaveta').classList.remove('aberta');
+    document.getElementById('gavetaOverlay').classList.remove('visivel');
+    document.getElementById('btnHamburger').classList.remove('aberto');
+    document.body.style.overflow = '';
+}
+
+function irParaGaveta(secao) {
+    fecharGaveta();
+
+    // Atualizar active nos botões da gaveta
+    ['criar','andamento','finalizados','dashboard','gastos'].forEach(s => {
+        const b = document.getElementById('gbtn' + s.charAt(0).toUpperCase() + s.slice(1));
+        if (b) b.classList.toggle('active', s === secao);
+    });
+
+    // Reusar a lógica de navegação existente (sem passar btn do menu topo)
+    document.querySelectorAll('.secao').forEach(s => s.classList.remove('active'));
+    document.getElementById('secao-' + secao).classList.add('active');
+    window.scrollTo(0, 0);
+
+    if (secao === 'andamento')   carregarAndamento();
+    if (secao === 'finalizados') carregarFinalizados();
+    if (secao === 'dashboard') {
+        const agora = new Date();
+        document.getElementById('dashMes').value = agora.getMonth();
+        document.getElementById('dashAno').value = agora.getFullYear();
+    }
+}
+
 // ===== BADGE NOTIFICAÇÃO =====
 function verificarNotificacoes() {
     const hoje  = new Date();
@@ -2073,18 +2277,22 @@ function verificarNotificacoes() {
         const badgeAntigo = wrapper.querySelector('.badge');
         if (badgeAntigo) badgeAntigo.remove();
 
-        if (count > 0) {
+            if (count > 0) {
             const badge = document.createElement('div');
             badge.className = 'badge';
             badge.textContent = count > 9 ? '9+' : count;
             wrapper.appendChild(badge);
-
-            // Botão fica levemente destacado
             btn.style.background = 'white';
             btn.style.color = 'var(--laranja)';
+
+            // Badge na gaveta também
+            const gb = document.getElementById('gavetaBadge');
+            if (gb) { gb.textContent = count > 9 ? '9+' : count; gb.style.display = 'flex'; }
         } else {
             btn.style.background = '';
             btn.style.color = '';
+            const gb = document.getElementById('gavetaBadge');
+            if (gb) gb.style.display = 'none';
         }
     });
 }
