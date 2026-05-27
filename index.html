@@ -702,14 +702,15 @@
                     <option value="Café">Café</option>
                     <option value="Dois Amores">Dois Amores</option>
                     <option value="Leite Ninho">Leite Ninho</option>
+                    <option value="Limão">Limão</option>
                     <option value="Moranguinho">Moranguinho</option>
                     <option value="Sensação">Sensação</option>
                 </optgroup>
                 <optgroup label="Gourmet (R$ 1,20)">
-                    <option value="Chocolate Gourmet Branco">Chocolate Gourmet Branco</option>
                     <option value="Chocolate Gourmet Preto">Chocolate Gourmet Preto</option>
                     <option value="Confete">Confete</option>
                     <option value="Churros">Churros</option>
+                    <option value="Delícia de Uva">Delícia de Uva</option>
                     <option value="Ferrero Rocher">Ferrero Rocher</option>
                     <option value="Leite Ninho com Nutella">Leite Ninho com Nutella</option>
                     <option value="Negresco">Negresco</option>
@@ -1015,9 +1016,9 @@ function fazerLogout() {
         // ===== PREÇOS =====
         const PRECOS = {
             'Amendoim':1.00,'Beijinho':1.00,'Brigadeiro':1.00,'Café':1.00,
-            'Dois Amores':1.00,'Leite Ninho':1.00,'Moranguinho':1.00,'Sensação':1.00,
-            'Chocolate Gourmet Branco':1.20,'Chocolate Gourmet Preto':1.20,
-            'Confete':1.20,'Churros':1.20,'Ferrero Rocher':1.20,
+            'Dois Amores':1.00,'Leite Ninho':1.00,'Limão':1.00,'Moranguinho':1.00,
+            'Sensação':1.00,'Chocolate Gourmet Preto':1.20,
+            'Confete':1.20,'Churros':1.20,'Delícia de Uva':1.20,'Ferrero Rocher':1.20,
             'Leite Ninho com Nutella':1.20,'Negresco':1.20,'Ovomaltine':1.20,'Prestígio':1.20
         };
 
@@ -1113,8 +1114,7 @@ function fazerLogout() {
                 const preco    = PRECOS[item.sabor] || 1.00;
                 const subtotal = (preco * item.quantidade).toFixed(2).replace('.',',');
                 let nomeSabor  = item.sabor
-                    .replace('Chocolate Gourmet Preto','Choc. G. Preto')
-                    .replace('Chocolate Gourmet Branco','Choc. G. Branco');
+                    .replace('Chocolate Gourmet Preto','Choc. Preto')
 
                 const div = document.createElement('div');
                 div.className = 'item';
@@ -1212,8 +1212,7 @@ function reenviarWhatsApp(key) {
         if (!p) { toast('Pedido não encontrado.', 'erro'); return; }
 
         function abreviar(s) {
-            return (s || '').replace('Chocolate Gourmet Preto','Choc. G. Preto')
-                            .replace('Chocolate Gourmet Branco','Choc. G. Branco');
+            return (s || '').replace('Chocolate Gourmet Preto','Choc. Preto')
         }
 
         let msg = `Pedidos - Doces Flor\n\n`;
@@ -1314,8 +1313,7 @@ function reenviarWhatsApp(key) {
             );
 
             function abreviar(s) {
-                return s.replace('Chocolate Gourmet Preto','Choc. G. Preto')
-                        .replace('Chocolate Gourmet Branco','Choc. G. Branco');
+                return s.replace('Chocolate Gourmet Preto','Choc. Preto')
             }
 
             if (itens.length === 1) {
@@ -1430,9 +1428,9 @@ function reenviarWhatsApp(key) {
         // ===== PREÇOS (para cards) =====
 const PRECOS_CARD = {
     'Amendoim':1.00,'Beijinho':1.00,'Brigadeiro':1.00,'Café':1.00,
-    'Dois Amores':1.00,'Leite Ninho':1.00,'Moranguinho':1.00,'Sensação':1.00,
-    'Chocolate Gourmet Branco':1.20,'Chocolate Gourmet Preto':1.20,
-    'Confete':1.20,'Churros':1.20,'Ferrero Rocher':1.20,
+    'Dois Amores':1.00,'Leite Ninho':1.00,'Limão':1.00,'Moranguinho':1.00,
+    'Sensação':1.00,'Chocolate Gourmet Preto':1.20,
+    'Confete':1.20,'Churros':1.20,'Delícia de Uva':1.20,'Ferrero Rocher':1.20,
     'Leite Ninho com Nutella':1.20,'Negresco':1.20,'Ovomaltine':1.20,'Prestígio':1.20
 };
 
