@@ -1224,6 +1224,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         var database = firebase.database();
+        var VALIDAR_DATA_PASSADA = false; // mude para true para reativar a trava
 
         function toast(msg, tipo) {
     tipo = tipo || 'sucesso';
@@ -2922,22 +2923,26 @@ document.addEventListener('DOMContentLoaded', function() {
             this.value === 'Pago Parcialmente' ? 'block' : 'none';
     });
 
-    // Data entrega
-    document.getElementById('dataEntrega').addEventListener('blur', function() {
-        const hoje = new Date().toISOString().split('T')[0];
-        if (this.value && this.value < hoje) {
-            alert('Data de entrega não pode ser anterior à data atual.');
-            this.value = '';
-        }
-    });
+// Data entrega
+if (VALIDAR_DATA_PASSADA) {
+document.getElementById('dataEntrega').addEventListener('blur', function() {
+const hoje = new Date().toISOString().split('T')[0];
+if (this.value && this.value < hoje) {
+alert('Data de entrega não pode ser anterior à data atual.');
+this.value = '';
+}
+});
+}
 
     // Botão adicionar item
     document.getElementById('btnAdicionarItem').addEventListener('click', adicionarItem);
 
-    // Bloquear datas passadas no seletor nativo (mobile)
+// Bloquear datas passadas no seletor nativo (mobile)
+if (VALIDAR_DATA_PASSADA) {
 var inputData = document.getElementById('dataEntrega');
 var hoje = new Date().toISOString().split('T')[0];
 inputData.setAttribute('min', hoje);
+}
 });
     </script>
 </body>
