@@ -1359,16 +1359,16 @@ function fazerLogout() {
             let quantidade;
             if (selQtd === 'customizado') {
                 quantidade = parseInt(document.getElementById('quantidadeCustomizada').value);
-                if (!quantidade || quantidade <= 0) { alert('Digite uma quantidade válida!'); return; }
+                if (!quantidade || quantidade <= 0) { toast('❌ Digite uma quantidade válida!'); return; }
             } else {
                 quantidade = parseInt(selQtd);
             }
 
-            if (!sabor)    { alert('Selecione um sabor.');     return; }
-            if (!formato)  { alert('Selecione o formato.');    return; }
-            if (!tipoForma){ alert('Selecione a forminha.');   return; }
-            if (!cor)      { alert('Selecione uma cor.');      return; }
-            if (!quantidade|| quantidade <= 0) { alert('Selecione a quantidade.'); return; }
+            if (!sabor)    { toast('❌ Selecione um sabor.');     return; }
+            if (!formato)  { toast('❌ Selecione o formato.');    return; }
+            if (!tipoForma){ toast('❌ Selecione a forminha.');   return; }
+            if (!cor)      { toast('❌ Selecione uma cor.');      return; }
+            if (!quantidade|| quantidade <= 0) { toast('❌ Selecione a quantidade.'); return; }
 
             itens.push({ id: Date.now() + Math.random(), sabor, formato, tipoForma, cor, quantidade });
             renderizarItens();
