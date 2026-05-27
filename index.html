@@ -1293,7 +1293,7 @@ function recuperarSenha() {
         return;
     }
     auth.sendPasswordResetEmail(email)
-        .then(() => alert('📧 E-mail de redefinição enviado! Verifique sua caixa de entrada.'))
+        .then(() => toast('📧 E-mail de redefinição enviado! Verifique sua caixa de entrada.'))
         .catch(() => document.getElementById('loginErro').textContent = 'Não foi possível enviar o e-mail.');
 }
 
@@ -2928,7 +2928,7 @@ if (VALIDAR_DATA_PASSADA) {
 document.getElementById('dataEntrega').addEventListener('blur', function() {
 const hoje = new Date().toISOString().split('T')[0];
 if (this.value && this.value < hoje) {
-alert('Data de entrega não pode ser anterior à data atual.');
+toast('❌ Data de entrega não pode ser anterior à data atual.');
 this.value = '';
 }
 });
