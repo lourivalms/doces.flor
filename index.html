@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -1333,6 +1334,8 @@ body.dark-mode .btn-mes:hover { background: #5a3f25; }
                 <div style="background:var(--bege);border-radius:8px;padding:14px;text-align:center;">
                     <p style="font-size:0.78em;color:var(--marrom-medio);margin-bottom:4px;">Faturamento</p>
                     <p id="dashFaturamento" style="font-size:1.4em;font-weight:700;color:var(--laranja-escuro);">R$ 0,00</p>
+                    <p id="dashCarteira" style="font-size:0.82em;color:var(--marrom-medio);margin-top:2px;">📂 Em carteira: <strong id="dashCarteiraValor">R$ 0,00</strong></p>
+                    <p id="dashFaturamentoComparativo" style="font-size:0.75em;margin-top:4px;font-weight:700;"></p>
                 </div>
                 <div style="background:var(--bege);border-radius:8px;padding:14px;text-align:center;">
                     <p style="font-size:0.78em;color:var(--marrom-medio);margin-bottom:4px;">Ticket Médio</p>
@@ -1349,6 +1352,15 @@ body.dark-mode .btn-mes:hover { background: #5a3f25; }
                     <p id="dashLucro" style="font-size:1.4em;font-weight:700;color:#2e7d32;">R$ 0,00</p>
                 </div>
             </div>
+        </div>
+
+        <div class="form-card" id="cardPendencias" style="display:none;">
+            <p class="form-card-titulo">💰 Valor a Receber</p>
+            <div style="background:#fff8e1;border-radius:8px;padding:14px;text-align:center;border:1px solid #ffe082;">
+                <p id="dashPendenciasValor" style="font-size:1.6em;font-weight:700;color:#e65100;">R$ 0,00</p>
+                <p id="dashPendenciasDetalhe" style="font-size:0.78em;color:var(--marrom-medio);margin-top:4px;"></p>
+            </div>
+            <div id="dashPendenciasLista" style="margin-top:12px;"></div>
         </div>
 
         <div class="form-card">
@@ -1385,6 +1397,11 @@ body.dark-mode .btn-mes:hover { background: #5a3f25; }
         </div>
 
         <div class="form-card">
+            <p class="form-card-titulo">📈 Faturamento por Período</p>
+            <canvas id="graficoFaturamento" style="max-height:280px;"></canvas>
+        </div>
+
+        <div class="form-card">
             <p class="form-card-titulo">💸 Gastos por Categoria</p>
             <div id="dashGastosCategorias"></div>
         </div>
@@ -1410,6 +1427,7 @@ body.dark-mode .btn-mes:hover { background: #5a3f25; }
         firebase.initializeApp(firebaseConfig);
         var database = firebase.database();
         var VALIDAR_DATA_PASSADA = false; // mude para true para reativar a trava
+        var graficoFaturamento = null;
 
         function toast(msg, tipo) {
     tipo = tipo || 'sucesso';
@@ -1732,7 +1750,6 @@ function reenviarWhatsApp(key) {
         if (valorDesc > 0) {
         msg += `Desconto: R$ ${valorDesc.toFixed(2).replace('.',',')}\n`;
         }
-        msg += `Valor Total: R$ ${(p.valorTotal || 0).toFixed(2).replace('.',',')}\n`;
         msg += `Valor Total: R$ ${(p.valorTotal || 0).toFixed(2).replace('.',',')}\n`;
         msg += `\n`;
         msg += `Status Pagamento: ${p.statusPagamento || ''}\n`;
@@ -2915,6 +2932,61 @@ function filtrarPorDia(dataISO) {
     });
 }
 
+// ===== GRÁFICO FATURAMENTO =====
+function criarGraficoFaturamento(meses, valores, mesSelecionado) {
+    if (graficoFaturamento) {
+        graficoFaturamento.destroy();
+        graficoFaturamento = null;
+    }
+
+    // Cores: mês selecionado em laranja cheio, demais transparentes
+    const coresBarra = valores.map((_, i) =>
+        (mesSelecionado === null || i === mesSelecionado)
+            ? 'rgba(232, 114, 74, 1)'
+            : 'rgba(232, 114, 74, 0.25)'
+    );
+
+    const ctx = document.getElementById('graficoFaturamento').getContext('2d');
+    graficoFaturamento = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: meses,
+            datasets: [{
+                label: 'Faturamento (R$)',
+                data: valores,
+                backgroundColor: coresBarra,
+                borderColor: 'rgba(232, 114, 74, 1)',
+                borderWidth: 1,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return ' R$ ' + ctx.parsed.y.toFixed(2).replace('.', ',');
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(v) {
+                            return 'R$ ' + v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
 // ===== DASHBOARD =====
 function carregarDashboard() {
     const mesVal = document.getElementById('dashMes').value;
@@ -2934,13 +3006,21 @@ function carregarDashboard() {
                 return isNaN(num) ? 0 : num;
             }
             
-    database.ref('pedidos').once('value', snapshot => {
+        database.ref('pedidos').once('value', snapshot => {
         let faturamento  = 0;
+        let faturamentoMesAnterior = 0;
+        let totalPendente = 0;
+        let qtdPendente   = 0;
         let entregues    = 0;
         let andamento    = 0;
         const sabores    = {};
         var totalBrigadeiros = 0;
         const pagamentos = {};
+
+        // Calcular mês anterior
+        var mesAnterior = mes !== null ? mes - 1 : null;
+        var anoMesAnterior = ano;
+        if (mesAnterior === -1) { mesAnterior = 11; anoMesAnterior = ano - 1; }
 
         snapshot.forEach(child => {
             const p = child.val();
@@ -2956,13 +3036,27 @@ function carregarDashboard() {
                 dataP = new Date(pts[0], pts[1]-1, pts[2]);
             } else return;
 
-            if (dataP.getFullYear() !== ano) return;
-            if (mes !== null && dataP.getMonth() !== mes) return;
+            if (dataP.getFullYear() !== ano && dataP.getFullYear() !== anoMesAnterior) return;
 
             const status     = p.statusPagamento || '';
             const finalizado = status === 'entregue';
             const pago       = status === 'Pago';
             const parcial    = status === 'Pago Parcialmente';
+
+            // Faturamento mês anterior — calculado ANTES do filtro do mês atual
+            if (mes !== null && dataP.getFullYear() === anoMesAnterior && dataP.getMonth() === mesAnterior) {
+                if (finalizado || pago) {
+                    faturamentoMesAnterior += limparValor(p.valorTotal);
+                } else if (parcial) {
+                    const vp = limparValor(p.valorPago);
+                    const vt = limparValor(p.valorTotal);
+                    faturamentoMesAnterior += vp > 0 ? vp : vt;
+                }
+            }
+
+            // Ignorar pedidos fora do mês/ano selecionado para os demais cálculos
+            if (dataP.getFullYear() !== ano) return;
+            if (mes !== null && dataP.getMonth() !== mes) return;
 
             // Contadores de pedidos
             if (finalizado) {
@@ -2983,6 +3077,17 @@ function carregarDashboard() {
             // Status de pagamento (para o card de status)
             pagamentos[status] = (pagamentos[status] || 0) + 1;
 
+            // Acumular pendentes para cálculo de carteira
+            if (status === 'A pagar') {
+                totalPendente += limparValor(p.valorTotal);
+                qtdPendente++;
+            } else if (parcial) {
+                const vPago = limparValor(p.valorPago);
+                const vTotal = limparValor(p.valorTotal);
+                totalPendente += Math.max(0, vTotal - vPago);
+                qtdPendente++;
+            }
+
             // Sabores
             (p.itens || []).forEach(item => {
                 const nome = item.sabor || item.nome || 'Desconhecido';
@@ -2995,9 +3100,98 @@ const ticket = entregues > 0 ? faturamento / entregues : 0;
 
         // Preencher métricas de pedidos
         document.getElementById('dashFaturamento').textContent = 'R$ ' + faturamento.toFixed(2).replace('.',',');
+
+        // Em carteira = faturamento já recebido + total dos pendentes
+        const carteira = faturamento + totalPendente;
+        document.getElementById('dashCarteiraValor').textContent = 'R$ ' + carteira.toFixed(2).replace('.',',');
+
+        // Comparativo mês anterior
+        const elComp = document.getElementById('dashFaturamentoComparativo');
+        const mesesNomeComp = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        if (mes !== null && faturamentoMesAnterior > 0) {
+            const diff = ((faturamento - faturamentoMesAnterior) / faturamentoMesAnterior) * 100;
+            const seta  = diff >= 0 ? '↑' : '↓';
+            const cor   = diff >= 0 ? '#2e7d32' : '#dc3545';
+            const nomeMesAnt = mesesNomeComp[mesAnterior];
+            elComp.style.color = cor;
+            elComp.textContent = `${seta} ${Math.abs(diff).toFixed(0)}% vs ${nomeMesAnt}`;
+        } else if (mes !== null && faturamentoMesAnterior === 0) {
+            elComp.style.color = 'var(--marrom-medio)';
+            elComp.textContent = '— sem dados no mês anterior';
+        } else {
+            elComp.textContent = '';
+        }
         document.getElementById('dashTicket').textContent      = 'R$ ' + ticket.toFixed(2).replace('.',',');
         document.getElementById('dashEntregues').textContent   = entregues;
         document.getElementById('dashAndamento').textContent   = andamento;
+
+        let htmlPendentes = '';
+
+        // Ordenar por data de entrega mais próxima primeiro
+        const pendentesOrdenados = [];
+        snapshot.forEach(child => {
+            const p = child.val();
+            if (!p.dataEntrega) return;
+            let dataP;
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(p.dataEntrega)) {
+                const pts = p.dataEntrega.split('/');
+                dataP = new Date(pts[2], pts[1]-1, pts[0]);
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(p.dataEntrega)) {
+                const pts = p.dataEntrega.split('-');
+                dataP = new Date(pts[0], pts[1]-1, pts[2]);
+            } else return;
+            if (dataP.getFullYear() !== ano) return;
+            if (mes !== null && dataP.getMonth() !== mes) return;
+            const st = p.statusPagamento || '';
+            if (st !== 'A pagar' && st !== 'Pago Parcialmente') return;
+            const vTotal = limparValor(p.valorTotal);
+            const vPago  = limparValor(p.valorPago);
+            const vPend  = st === 'Pago Parcialmente' ? Math.max(0, vTotal - vPago) : vTotal;
+            if (vPend <= 0) return;
+            pendentesOrdenados.push({ p, dataP, vPend });
+        });
+        pendentesOrdenados.sort((a, b) => a.dataP - b.dataP);
+
+        htmlPendentes = '';
+        pendentesOrdenados.forEach(({ p, vPend }) => {
+            const st = p.statusPagamento || '';
+            const vPago = limparValor(p.valorPago);
+            const dataFormatada = converterDataParaBR(p.dataEntrega);
+            const statusLabel = st === 'Pago Parcialmente'
+                ? `<span style="color:#e65100;font-size:0.75em;font-weight:700;">Parcial</span>`
+                : `<span style="color:#dc3545;font-size:0.75em;font-weight:700;">A pagar</span>`;
+            htmlPendentes += `
+                <div style="display:flex;justify-content:space-between;align-items:center;
+                            padding:8px 0;border-bottom:1px solid var(--laranja-claro);font-size:0.85em;">
+                    <div>
+                        <strong>${p.nome || 'N/A'}</strong>
+                        <span style="color:var(--marrom-medio);font-size:0.82em;margin-left:6px;">
+                            📅 ${dataFormatada}
+                        </span>
+                        <br>${statusLabel}
+                        ${st === 'Pago Parcialmente' && vPago > 0
+                            ? `<span style="color:var(--marrom-medio);font-size:0.75em;">
+                                (pago R$ ${vPago.toFixed(2).replace('.',',')})
+                               </span>`
+                            : ''}
+                    </div>
+                    <strong style="color:#e65100;white-space:nowrap;margin-left:8px;">
+                        R$ ${vPend.toFixed(2).replace('.',',')}
+                    </strong>
+                </div>`;
+        });
+
+        if (qtdPendente > 0) {
+            document.getElementById('cardPendencias').style.display = 'block';
+            document.getElementById('dashPendenciasValor').textContent =
+                'R$ ' + totalPendente.toFixed(2).replace('.',',');
+            document.getElementById('dashPendenciasDetalhe').textContent =
+                `${qtdPendente} pedido${qtdPendente > 1 ? 's' : ''} com pagamento pendente`;
+            document.getElementById('dashPendenciasLista').innerHTML = htmlPendentes;
+        } else {
+            document.getElementById('cardPendencias').style.display = 'none';
+        }
 
         var mediaBrig = (entregues + andamento) > 0
             ? Math.round(totalBrigadeiros / (entregues + andamento)) : 0;
@@ -3078,6 +3272,37 @@ const ticket = entregues > 0 ? faturamento / entregues : 0;
                             <div style="background:#e65100;height:8px;border-radius:6px;width:${Math.round((val/maxCat)*100)}%;"></div>
                         </div>
                     </div>`).join('');
+
+        // ===== GRÁFICO: Faturamento por mês do ano =====
+            const mesesNome = ['Jan','Fev','Mar','Abr','Mai','Jun',
+                               'Jul','Ago','Set','Out','Nov','Dez'];
+            const fatMensal = {};
+            for (let i = 0; i < 12; i++) fatMensal[i] = 0;
+
+            snapshot.forEach(child => {
+                const p = child.val();
+                if (!p.dataEntrega) return;
+                let dataP;
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(p.dataEntrega)) {
+                    const pts = p.dataEntrega.split('/');
+                    dataP = new Date(pts[2], pts[1]-1, pts[0]);
+                } else if (/^\d{4}-\d{2}-\d{2}$/.test(p.dataEntrega)) {
+                    const pts = p.dataEntrega.split('-');
+                    dataP = new Date(pts[0], pts[1]-1, pts[2]);
+                } else return;
+                if (dataP.getFullYear() !== ano) return;
+
+                const st = p.statusPagamento || '';
+                if (st === 'entregue' || st === 'Pago') {
+                    fatMensal[dataP.getMonth()] += limparValor(p.valorTotal);
+                } else if (st === 'Pago Parcialmente') {
+                    const vp = limparValor(p.valorPago);
+                    const vt = limparValor(p.valorTotal);
+                    fatMensal[dataP.getMonth()] += vp > 0 ? vp : vt;
+                }
+            });
+
+            criarGraficoFaturamento(mesesNome, Object.values(fatMensal), mes);
 
             document.getElementById('dashboard-resultado').style.display = 'block';
         });
