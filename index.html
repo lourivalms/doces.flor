@@ -399,6 +399,7 @@
         }
 
         .dia.sem-pedidos .dia-contador { display: none; }
+        .dia.sem-pedidos .dia-contador-verde { display: none; }
 
         /* ===== CAMPOS CONDICIONAIS ===== */
         #enderecoFields   { display: none; }
@@ -737,6 +738,80 @@
     margin-bottom: 3px;
 }
 
+/* ===== MODAL DE CONFIRMAÇÃO ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-box {
+    background: var(--branco);
+    border-radius: 16px;
+    padding: 28px 24px 20px;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.modal-box p {
+    font-size: 1em;
+    color: var(--marrom);
+    line-height: 1.5;
+    margin-bottom: 22px;
+    font-family: 'Lato', Arial, sans-serif;
+}
+
+.modal-botoes {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.modal-botoes .btn {
+    flex: 1;
+    max-width: 140px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Lato', Arial, sans-serif;
+}
+
+.btn-cinza {
+    background: #e0d6cc;
+    color: var(--marrom);
+}
+.btn-cinza:hover { background: #d0c4b8; }
+
+.btn-vermelho {
+    background: #c0392b;
+    color: white;
+}
+.btn-vermelho:hover { background: #a93226; }
+
+/* ===== CÍRCULO VERDE P/ FINALIZADOS ===== */
+.dia-contador-verde {
+    font-size: 0.68em;
+    background: var(--verde);
+    color: white;
+    border-radius: 50%;
+    width: 19px; height: 19px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    font-weight: 700;
+}
+
     </style>
 </head>
 <body>
@@ -1037,14 +1112,18 @@
     </section>
 
     <!-- ===== SEÇÃO 3: PEDIDOS FINALIZADOS ===== -->
-    <section id="secao-finalizados" class="secao">
-        <h2 class="secao-titulo">✅ Pedidos Finalizados</h2>
-        <button class="btn btn-marrom btn-bloco" onclick="toggleCalendarioFinalizados()">📅 Ver Calendário</button>
-        <div id="calendario-wrapper-finalizados">
-            <div id="calendario-container-finalizados"></div>
-        </div>
-        <div id="lista-finalizados"><p style="color:var(--marrom-medio);">Carregando...</p></div>
-    </section>
+<section id="secao-finalizados" class="secao">
+    <h2 class="secao-titulo">✅ Pedidos Finalizados</h2>
+    <div id="totalizador-finalizados" style="display:none; background:var(--bege); border-radius:10px; padding:12px 16px; margin-bottom:14px; text-align:center; font-family:'Lato',Arial,sans-serif;">
+        <span style="font-size:1.1em; font-weight:700; color:var(--verde);">✅ Total: <span id="totalFinalizadosContagem">0</span> pedidos finalizados</span>
+        <span id="totalFinalizadosMes" style="font-size:0.85em; color:var(--marrom-medio); margin-left:10px;"></span>
+    </div>
+    <button class="btn btn-marrom btn-bloco" onclick="toggleCalendarioFinalizados()">📅 Ver Calendário</button>
+    <div id="calendario-wrapper-finalizados">
+        <div id="calendario-container-finalizados"></div>
+    </div>
+    <div id="lista-finalizados"><p style="color:var(--marrom-medio);">Carregando...</p></div>
+</section>
 
     <!-- ===== SEÇÃO 3.5: GASTOS ===== -->
 <section id="secao-gastos" class="secao">
@@ -1790,6 +1869,32 @@ function carregarFinalizados() {
             pedidos.push(p);
         });
 
+            // Totalizador
+    const mesesNome = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+        'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const agoraData = new Date();
+    const mesAtualNome = mesesNome[agoraData.getMonth()];
+    const anoAtualNome = agoraData.getFullYear();
+
+    let totalMes = 0;
+    pedidos.forEach(p => {
+        let dataP;
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(p.dataEntrega)) {
+            const pts = p.dataEntrega.split('/');
+            dataP = new Date(pts[2], pts[1]-1, pts[0]);
+        } else if (/^\d{4}-\d{2}-\d{2}$/.test(p.dataEntrega)) {
+            const pts = p.dataEntrega.split('-');
+            dataP = new Date(pts[0], pts[1]-1, pts[2]);
+        } else return;
+        if (dataP.getMonth() === agoraData.getMonth() && dataP.getFullYear() === agoraData.getFullYear()) {
+            totalMes++;
+        }
+    });
+
+    document.getElementById('totalizador-finalizados').style.display = 'block';
+    document.getElementById('totalFinalizadosContagem').textContent = pedidos.length;
+    document.getElementById('totalFinalizadosMes').textContent = `• ${totalMes} em ${mesAtualNome}/${anoAtualNome}`;
+
 if (pedidos.length === 0) {
             lista.innerHTML = '<p style="color:var(--marrom-medio);">Nenhum pedido finalizado.</p>';
             return;
@@ -1891,36 +1996,38 @@ function toggleDetalhes(key) {
 
 // ===== FINALIZAR PEDIDO =====
 function finalizarPedido(key) {
-    database.ref('pedidos/' + key).once('value', snapshot => {
-        const p = snapshot.val();
-        if (!p) return;
+database.ref('pedidos/' + key).once('value', snapshot => {
+const p = snapshot.val();
+if (!p) return;
 
-        const statusAtual = p.statusPagamento || '';
-        const isPago = statusAtual === 'Pago';
+    const statusAtual = p.statusPagamento || '';
+    const isPago = statusAtual === 'Pago';
 
-        let mensagem = 'Finalizar este pedido?';
-        if (!isPago) {
-            mensagem = `⚠️ Atenção: o pagamento está como "${statusAtual}".\n\nDeseja finalizar mesmo assim?`;
-        }
+    let mensagem = 'Finalizar este pedido?';
+    if (!isPago) {
+        mensagem = `⚠️ Atenção: o pagamento está como "${statusAtual}".\n\nDeseja finalizar mesmo assim?`;
+    }
 
-        if (!confirm(mensagem)) return;
+    showConfirmModal(mensagem, function() {
         database.ref('pedidos/' + key).update({ statusPagamento: 'entregue' }).then(() => {
-        toast('✅ Pedido finalizado!');
+            toast('✅ Pedido finalizado!');
             carregarAndamento();
             if (mesAtual !== undefined) renderizarCalendario();
         }).catch(err => toast('Erro: ' + err.message, 'erro'));
     });
+});
 }
 
 // ===== EXCLUIR PEDIDO =====
 function excluirPedido(key) {
-    if (!confirm('⚠️ Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.')) return;
+showConfirmModal('⚠️ Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.', function() {
     database.ref('pedidos/' + key).remove().then(() => {
         toast('🗑️ Pedido excluído.');
         carregarAndamento();
         carregarFinalizados();
         if (mesAtual !== undefined) renderizarCalendario();
     }).catch(err => toast('Erro ao excluir: ' + err.message, 'erro'));
+});
 }
 
 // ===== EDITAR PEDIDO =====
@@ -2284,10 +2391,10 @@ function renderizarCalendarioFinalizados() {
                     const el = document.getElementById('dia-fin-' + dia);
                     if (el) {
                         el.classList.remove('sem-pedidos');
-                        let cnt = el.querySelector('.dia-contador');
+                        let cnt = el.querySelector('.dia-contador-verde');
                         if (!cnt) {
                             cnt = document.createElement('div');
-                            cnt.className = 'dia-contador';
+                            cnt.className = 'dia-contador-verde';
                             cnt.textContent = '1';
                             el.appendChild(cnt);
                         } else {
@@ -2390,6 +2497,23 @@ function filtrarPorDiaFinalizados(dataISO) {
             lista.innerHTML = `<p style="color:var(--marrom-medio);">Nenhum pedido finalizado em ${dia}/${mes}/${ano}.</p>`;
         }
     });
+}
+
+// ===== MODAL DE CONFIRMAÇÃO =====
+var modalCallback = null;
+
+function showConfirmModal(mensagem, callback) {
+    document.getElementById('modalMensagem').textContent = mensagem;
+    document.getElementById('modalConfirmacao').style.display = 'flex';
+    modalCallback = callback;
+}
+
+function fecharModal(confirmou) {
+    document.getElementById('modalConfirmacao').style.display = 'none';
+    if (confirmou && modalCallback) {
+        modalCallback();
+    }
+    modalCallback = null;
 }
 
 // ===== GAVETA =====
@@ -3039,11 +3163,12 @@ function criarCardGasto(g) {
 }
 
 function excluirGasto(key) {
-    if (!confirm('Excluir este gasto?')) return;
+showConfirmModal('Excluir este gasto?', function() {
     database.ref('gastos/' + key).remove().then(() => {
         toast('🗑️ Gasto excluído.');
         carregarGastos();
     }).catch(err => toast('Erro: ' + err.message, 'erro'));
+});
 }
 
 // ===== INIT =====
@@ -3144,6 +3269,24 @@ var hoje = new Date().toISOString().split('T')[0];
 inputData.setAttribute('min', hoje);
 }
 });
-    </script>
+</script>
+
+<!-- ===== TOTALIZADOR FINALIZADOS (escondido) ===== -->
+<div id="totalizador-finalizados" style="display:none; background:var(--bege); border-radius:10px; padding:12px 16px; margin-bottom:14px; text-align:center; font-family:'Lato',Arial,sans-serif;">
+    <span style="font-size:1.1em; font-weight:700; color:var(--verde);">✅ Total: <span id="totalFinalizadosContagem">0</span> pedidos finalizados</span>
+    <span id="totalFinalizadosMes" style="font-size:0.85em; color:var(--marrom-medio); margin-left:10px;"></span>
+</div>
+
+<!-- ===== MODAL DE CONFIRMAÇÃO ===== -->
+<div id="modalConfirmacao" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <p id="modalMensagem"></p>
+        <div class="modal-botoes">
+            <button class="btn btn-cinza" onclick="fecharModal(false)">Cancelar</button>
+            <button class="btn btn-vermelho" id="modalBtnConfirmar" onclick="fecharModal(true)">Confirmar</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
