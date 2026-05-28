@@ -318,6 +318,16 @@
             box-shadow: 0 2px 10px rgba(232,114,74,0.08);
         }
 
+        #calendario-wrapper-finalizados {
+            display: none;
+            background: var(--branco);
+            border: 2px solid var(--laranja-claro);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(232,114,74,0.08);
+        }
+
         .calendario-header {
             display: flex;
             justify-content: space-between;
@@ -1029,6 +1039,10 @@
     <!-- ===== SEÇÃO 3: PEDIDOS FINALIZADOS ===== -->
     <section id="secao-finalizados" class="secao">
         <h2 class="secao-titulo">✅ Pedidos Finalizados</h2>
+        <button class="btn btn-marrom btn-bloco" onclick="toggleCalendarioFinalizados()">📅 Ver Calendário</button>
+        <div id="calendario-wrapper-finalizados">
+            <div id="calendario-container-finalizados"></div>
+        </div>
         <div id="lista-finalizados"><p style="color:var(--marrom-medio);">Carregando...</p></div>
     </section>
 
@@ -2191,6 +2205,191 @@ function mudarMes(dir) {
     if (mesAtual > 11) { mesAtual = 0;  anoAtual++; }
     renderizarCalendario();
     filtrarAndamentoPorMes();
+}
+
+// ===== CALENDÁRIO - FINALIZADOS =====
+var mesAtualFin = new Date().getMonth();
+var anoAtualFin = new Date().getFullYear();
+
+function toggleCalendarioFinalizados() {
+    const w   = document.getElementById('calendario-wrapper-finalizados');
+    const btn = event.target;
+    if (w.style.display === 'none' || w.style.display === '') {
+        w.style.display = 'block';
+        btn.textContent = '📅 Fechar Calendário';
+        renderizarCalendarioFinalizados();
+        filtrarFinalizadosPorMes();
+    } else {
+        w.style.display = 'none';
+        btn.textContent = '📅 Ver Calendário';
+        carregarFinalizados();
+    }
+}
+
+function renderizarCalendarioFinalizados() {
+    const container = document.getElementById('calendario-container-finalizados');
+    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+        'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const dias  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+    let html = `
+        <div class="calendario-header">
+            <button class="btn-mes" onclick="mudarMesFinalizados(-1)">← Anterior</button>
+            <h3>${meses[mesAtualFin]} de ${anoAtualFin}</h3>
+            <button class="btn-mes" onclick="mudarMesFinalizados(1)">Próximo →</button>
+        </div>
+        <div class="calendario-grid">
+    `;
+
+    dias.forEach(d => html += `<div class="dia-semana">${d}</div>`);
+
+    const primeiro  = new Date(anoAtualFin, mesAtualFin, 1);
+    const diasAntes = primeiro.getDay();
+    const ultimoDia = new Date(anoAtualFin, mesAtualFin + 1, 0).getDate();
+
+    for (let i = 0; i < diasAntes; i++) html += `<div class="dia outro-mes"></div>`;
+
+    for (let dia = 1; dia <= ultimoDia; dia++) {
+        const dataStr = `${anoAtualFin}-${String(mesAtualFin+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+        html += `<div class="dia sem-pedidos" id="dia-fin-${dia}" onclick="filtrarPorDiaFinalizados('${dataStr}')">
+                    <div class="dia-numero">${dia}</div>
+                 </div>`;
+    }
+
+    const diasDepois = 42 - (diasAntes + ultimoDia);
+    for (let i = 0; i < diasDepois; i++) html += `<div class="dia outro-mes"></div>`;
+
+    html += `</div>`;
+    container.innerHTML = html;
+
+    // Carregar contadores (apenas pedidos FINALIZADOS/entregues)
+    setTimeout(() => {
+        database.ref('pedidos').once('value', snapshot => {
+            snapshot.forEach(child => {
+                const p = child.val();
+                const dataRef = p.dataEntrega || p.data;
+                if (p.statusPagamento !== 'entregue' || !dataRef) return;
+                let partes;
+                if (dataRef.includes('/')) {
+                    partes = dataRef.split('/');
+                } else if (dataRef.includes('-')) {
+                    const pts = dataRef.split('-');
+                    partes = [pts[2], pts[1], pts[0]];
+                } else return;
+                if (partes.length !== 3) return;
+                const dia = parseInt(partes[0]);
+                const mes = parseInt(partes[1]) - 1;
+                const ano = parseInt(partes[2]);
+                if (ano === anoAtualFin && mes === mesAtualFin) {
+                    const el = document.getElementById('dia-fin-' + dia);
+                    if (el) {
+                        el.classList.remove('sem-pedidos');
+                        let cnt = el.querySelector('.dia-contador');
+                        if (!cnt) {
+                            cnt = document.createElement('div');
+                            cnt.className = 'dia-contador';
+                            cnt.textContent = '1';
+                            el.appendChild(cnt);
+                        } else {
+                            cnt.textContent = parseInt(cnt.textContent) + 1;
+                        }
+                    }
+                }
+            });
+        });
+    }, 100);
+}
+
+function mudarMesFinalizados(dir) {
+    mesAtualFin += dir;
+    if (mesAtualFin < 0)  { mesAtualFin = 11; anoAtualFin--; }
+    if (mesAtualFin > 11) { mesAtualFin = 0;  anoAtualFin++; }
+    renderizarCalendarioFinalizados();
+    filtrarFinalizadosPorMes();
+}
+
+function filtrarFinalizadosPorMes() {
+    const lista = document.getElementById('lista-finalizados');
+    lista.innerHTML = '<p style="color:var(--marrom-medio);">Carregando...</p>';
+
+    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+        'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const mes = mesAtualFin;
+    const ano = anoAtualFin;
+
+    database.ref('pedidos').once('value', snapshot => {
+        const pedidos = [];
+        snapshot.forEach(child => {
+            const p = child.val();
+            if (p.statusPagamento !== 'entregue') return;
+            if (!p.dataEntrega) return;
+            let dataP;
+            if (/^\d{2}\/\d{2}\/\d{4}$/.test(p.dataEntrega)) {
+                const pts = p.dataEntrega.split('/');
+                dataP = new Date(pts[2], pts[1]-1, pts[0]);
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(p.dataEntrega)) {
+                const pts = p.dataEntrega.split('-');
+                dataP = new Date(pts[0], pts[1]-1, pts[2]);
+            } else return;
+            if (dataP.getMonth() !== mes || dataP.getFullYear() !== ano) return;
+            p.key = child.key;
+            pedidos.push(p);
+        });
+
+        if (pedidos.length === 0) {
+            lista.innerHTML = `<p style="color:var(--marrom-medio);">Nenhum pedido finalizado em ${meses[mes]} de ${ano}.</p>`;
+            return;
+        }
+
+        pedidos.sort((a, b) => {
+            const toDate = d => {
+                if (!d) return null;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return new Date(d + 'T00:00:00');
+                const p = d.split('/');
+                return p.length === 3 ? new Date(p[2], p[1]-1, p[0]) : null;
+            };
+            const da = toDate(a.dataEntrega), db = toDate(b.dataEntrega);
+            if (!da && !db) return 0;
+            if (!da) return 1;
+            if (!db) return -1;
+            return db - da;
+        });
+
+        lista.innerHTML = `<p style="color:var(--marrom-medio);font-size:0.85em;margin-bottom:12px;">📅 Filtrando: ${meses[mes]} de ${ano} — <a href="#" onclick="carregarFinalizados();return false;" style="color:var(--laranja-escuro);">ver todos</a></p>`;
+        pedidos.forEach(p => lista.appendChild(criarCard(p, p.key, true)));
+    });
+}
+
+function filtrarPorDiaFinalizados(dataISO) {
+    const lista = document.getElementById('lista-finalizados');
+    lista.innerHTML = '<p style="color:var(--marrom-medio);">Carregando...</p>';
+
+    database.ref('pedidos').once('value', snapshot => {
+        lista.innerHTML = '';
+        let encontrou = false;
+
+        snapshot.forEach(child => {
+            const p = child.val();
+            if (p.statusPagamento !== 'entregue') return;
+
+            let dataPedido = p.dataEntrega || p.data || '';
+            if (dataPedido.includes('/')) {
+                const pts = dataPedido.split('/');
+                dataPedido = `${pts[2]}-${pts[1]}-${pts[0]}`;
+            }
+
+            if (dataPedido === dataISO) {
+                p.key = child.key;
+                lista.appendChild(criarCard(p, child.key, true));
+                encontrou = true;
+            }
+        });
+
+        if (!encontrou) {
+            const [ano, mes, dia] = dataISO.split('-');
+            lista.innerHTML = `<p style="color:var(--marrom-medio);">Nenhum pedido finalizado em ${dia}/${mes}/${ano}.</p>`;
+        }
+    });
 }
 
 // ===== GAVETA =====
