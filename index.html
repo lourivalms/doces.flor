@@ -947,6 +947,9 @@ body.dark-mode .btn-mes:hover { background: #5a3f25; }
 .autocomplete-wrapper { position: relative; }
 
     </style>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 </head>
 <body>
 
@@ -2966,274 +2969,136 @@ function escaparHTML(str) {
         .replace(/'/g, '&#39;');
 }
 
-// ===== IMPRIMIR COMPROVANTE =====
 function imprimirComprovante(key) {
     database.ref('pedidos/' + key).once('value', snapshot => {
         const p = snapshot.val();
         if (!p) { toast('Pedido não encontrado.', 'erro'); return; }
 
-        const win = window.open('', '_blank');
-
-        // Formatar data
-        const dataBr = p.dataEntrega || p.data || '';
+        const dataBr  = p.dataEntrega || p.data || '';
         const horario = p.hora || '';
 
-        // Montar itens
         let itensHTML = '';
-        let totalUnidades = 0;
         if (p.itens && Array.isArray(p.itens)) {
             p.itens.forEach(item => {
-                const preco = PRECOS_CARD[item.sabor || item.nome] || 1.00;
-                const qtd = parseInt(item.quantidade) || 0;
+                const preco    = PRECOS_CARD[item.sabor || item.nome] || 1.00;
+                const qtd      = parseInt(item.quantidade) || 0;
                 const subtotal = (qtd * preco).toFixed(2).replace('.', ',');
-                totalUnidades += qtd;
                 itensHTML += `
                     <tr>
-                        <td style="padding:6px 4px;border-bottom:1px solid #eee;">${item.sabor || item.nome}</td>
-                        <td style="padding:6px 4px;border-bottom:1px solid #eee;text-align:center;">${qtd}</td>
-                        <td style="padding:6px 4px;border-bottom:1px solid #eee;text-align:center;">${item.formato || 'N/A'}</td>
-                        <td style="padding:6px 4px;border-bottom:1px solid #eee;text-align:right;">R$ ${subtotal}</td>
-                    </tr>
-                `;
+                        <td style="padding:2px;border-bottom:1px solid #eee;">${item.sabor || item.nome}</td>
+                        <td style="padding:2px;border-bottom:1px solid #eee;text-align:center;">${qtd}</td>
+                        <td style="padding:2px;border-bottom:1px solid #eee;text-align:center;">${item.formato || 'N/A'}</td>
+                        <td style="padding:2px;border-bottom:1px solid #eee;text-align:right;">R$ ${subtotal}</td>
+                    </tr>`;
             });
         }
 
-        // Formatar valores
-        const valorTotal = typeof p.valorTotal === 'number'
+        const valorTotal   = typeof p.valorTotal === 'number'
             ? 'R$ ' + p.valorTotal.toFixed(2).replace('.', ',')
             : (p.valorTotal || 'R$ 0,00');
-        const valorFrete = typeof p.valorFrete === 'number'
-            ? 'R$ ' + p.valorFrete.toFixed(2).replace('.', ',')
-            : (p.valorFrete || 'R$ 0,00');
-        const valorDesc = typeof p.desconto === 'number'
-            ? 'R$ ' + p.desconto.toFixed(2).replace('.', ',')
-            : 'R$ 0,00';
+        const emojiStatus  = p.statusPagamento === 'Pago' ? '✅'
+            : p.statusPagamento === 'Pago Parcialmente' ? '⚠️' : '🔴';
 
-        // Endereço
         let enderecoHTML = '';
         if (p.tipoEntrega === 'entrega' && p.endereco) {
-            enderecoHTML = `
-                <div style="margin-bottom: 4px;">
-                    <strong>Endereço:</strong>
-                    ${p.endereco.logradouro}, ${p.endereco.numero} — ${p.endereco.bairro}, ${p.endereco.cidade}
-                </div>
-            `;
+            enderecoHTML = `<div style="margin-bottom:2px;">
+                <strong>Endereço:</strong>
+                ${p.endereco.logradouro}, ${p.endereco.numero} — ${p.endereco.bairro}, ${p.endereco.cidade}
+            </div>`;
         }
 
-        // Status pagamento
-        const emojiStatus = p.statusPagamento === 'Pago' ? '✅' :
-            p.statusPagamento === 'Pago Parcialmente' ? '⚠️' : '🔴';
+        const container = document.createElement('div');
+        container.style.cssText = 'position:fixed;top:-9999px;left:0;z-index:-1;background:white;';
 
-        win.document.write(`
-            <html>
-            <head>
-                <title>Comprovante - Doces Flor</title>
-                <style>
-                    @page { size: 58mm auto; margin: 0; }
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body {
-                        font-family: 'Courier New', monospace;
-                        font-size: 11px;
-                        color: #3d2b1f;
-                        padding: 8px;
-                        width: 58mm;
-                        background: white;
-                    }
-                    .header {
-                        text-align: center;
-                        border-bottom: 1px dashed #E8724A;
-                        padding-bottom: 6px;
-                        margin-bottom: 8px;
-                    }
-                    .header img {
-                        width: 100px;
-                        height: auto;
-                        margin-bottom: 2px;
-                    }
-                    .header h1 {
-                        font-size: 16px;
-                        color: #E8724A;
-                        font-weight: 700;
-                        margin: 2px 0;
-                    }
-                    .header .sub {
-                        font-size: 10px;
-                        color: #7B4A2D;
-                        margin-top: 1px;
-                    }
-                    .header .slogan {
-                        font-size: 9px;
-                        color: #999;
-                        font-style: italic;
-                        margin-top: 2px;
-                    }
-                    .info-box {
-                        padding: 6px 8px;
-                        margin-bottom: 8px;
-                        font-size: 10px;
-                        border: 1px dashed #f0d5c8;
-                    }
-                    .info-box div { margin-bottom: 2px; }
-                    .info-box div:last-child { margin-bottom: 0; }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-bottom: 6px;
-                        font-size: 9px;
-                    }
-                    th {
-                        background: #E8724A;
-                        color: white;
-                        padding: 3px 2px;
-                        font-size: 8px;
-                        text-align: left;
-                    }
-                    td { padding: 2px; border-bottom: 1px solid #eee; }
-                    .resumo {
-                        border-top: 1px dashed #E8724A;
-                        padding-top: 4px;
-                        margin-bottom: 6px;
-                        font-size: 10px;
-                    }
-                    .resumo-linha {
-                        display: flex;
-                        justify-content: space-between;
-                        padding: 1px 0;
-                    }
-                    .resumo-total {
-                        display: flex;
-                        justify-content: space-between;
-                        font-size: 12px;
-                        font-weight: 700;
-                        color: #E8724A;
-                        border-top: 1px dashed #ccc;
-                        padding-top: 3px;
-                        margin-top: 2px;
-                    }
-                    .pagamento {
-                        text-align: center;
-                        font-size: 10px;
-                        margin-bottom: 8px;
-                        padding: 4px 6px;
-                        border: 1px dashed #ddd;
-                    }
-                    .obs {
-                        font-size: 9px;
-                        color: #666;
-                        margin-bottom: 8px;
-                        padding: 4px 6px;
-                        border-left: 2px solid #FFA500;
-                    }
-                    .assinatura {
-                        border-top: 1px dashed #ccc;
-                        padding-top: 8px;
-                        margin-top: 6px;
-                        text-align: center;
-                    }
-                    .assinatura-linha {
-                        width: 120px;
-                        border-top: 1px solid #333;
-                        margin: 12px auto 2px;
-                    }
-                    .assinatura p {
-                        font-size: 8px;
-                        color: #999;
-                    }
-                    .footer {
-                        text-align: center;
-                        margin-top: 8px;
-                        padding-top: 6px;
-                        border-top: 1px dashed #ddd;
-                        font-size: 8px;
-                        color: #bbb;
-                        line-height: 1.4;
-                    }
-                    .footer strong { color: #E8724A; }
-                </style>
-            </head>
-            <body>
+        container.innerHTML = `
+        <div id="comprovante-conteudo" style="width:320px;background:white;padding:14px 16px 10px;margin:0;font-family:Courier New,monospace;">
+            <div style="text-align:center;border-bottom:1px dashed #E8724A;padding-bottom:5px;margin-bottom:6px;">
+                <h1 style="font-size:18px;color:#E8724A;font-weight:700;margin:2px 0;font-family:Georgia,serif;">DOCES FLOR</h1>
+                <div style="font-size:10px;color:#7B4A2D;">Brigadeiros Artesanais</div>
+                <div style="font-size:9px;color:#999;font-style:italic;margin-top:1px;">"Feito com amor, entregue com carinho ♥"</div>
+            </div>
 
-                <div class="header">
-                    <img src="icon-512.png" alt="Doces Flor" style="width:100px;height:auto;margin-bottom:2px;">
-                    <h1>DOCES FLOR</h1>
-                    <div class="sub">Brigadeiros Artesanais</div>
-                    <div class="slogan">Feito com amor, entregue com carinho ♥</div>
+            <div style="padding:5px 8px;margin-bottom:6px;font-size:10px;border:1px dashed #f0d5c8;border-radius:3px;">
+                <div><strong>Cliente:</strong> ${p.nome || '---'}</div>
+                <div><strong>Telefone:</strong> ${p.telefone || '---'}</div>
+                <div><strong>Data:</strong> ${dataBr} às ${horario}</div>
+                <div><strong>Tipo:</strong> ${p.tipoEntrega === 'entrega' ? '🚚 Entrega' : '🏪 Retirada'}</div>
+                ${enderecoHTML}
+            </div>
+
+            <table style="width:100%;border-collapse:collapse;margin-bottom:5px;font-size:9px;">
+                <thead>
+                    <tr>
+                        <th style="background:#E8724A;color:white;padding:2px 3px;font-size:8px;text-align:left;">SABOR</th>
+                        <th style="background:#E8724A;color:white;padding:2px 3px;font-size:8px;text-align:center;">QTD</th>
+                        <th style="background:#E8724A;color:white;padding:2px 3px;font-size:8px;text-align:center;">FORMATO</th>
+                        <th style="background:#E8724A;color:white;padding:2px 3px;font-size:8px;text-align:right;">R$</th>
+                    </tr>
+                </thead>
+                <tbody>${itensHTML}</tbody>
+            </table>
+
+            <div style="border-top:1px dashed #E8724A;padding-top:3px;margin-bottom:5px;font-size:10px;">
+                <div style="display:flex;justify-content:space-between;padding:1px 0;">
+                    <span>Valor dos Brigadeiros</span>
+                    <span>${typeof p.valorTotal === 'number' ? 'R$ ' + (p.valorTotal + (p.desconto||0) - (p.valorFrete||0)).toFixed(2).replace('.', ',') : '---'}</span>
                 </div>
-
-                <div class="info-box">
-                    <div><strong>Cliente:</strong> ${p.nome || '---'}</div>
-                    <div><strong>Telefone:</strong> ${p.telefone || '---'}</div>
-                    <div><strong>Data:</strong> ${dataBr} às ${horario}</div>
-                    <div><strong>Tipo:</strong> ${p.tipoEntrega === 'entrega' ? '🚚 Entrega' : '🏪 Retirada'}</div>
-                    ${enderecoHTML}
+                ${(p.valorFrete || 0) > 0 ? `
+                <div style="display:flex;justify-content:space-between;padding:1px 0;">
+                    <span>Frete</span>
+                    <span>R$ ${p.valorFrete.toFixed(2).replace('.', ',')}</span>
+                </div>` : ''}
+                ${(p.desconto || 0) > 0 ? `
+                <div style="display:flex;justify-content:space-between;padding:1px 0;color:#e53935;">
+                    <span>Desconto</span>
+                    <span>- R$ ${p.desconto.toFixed(2).replace('.', ',')}</span>
+                </div>` : ''}
+                <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#E8724A;border-top:1px dashed #ddd;padding-top:3px;margin-top:2px;">
+                    <span>VALOR TOTAL</span>
+                    <span>${valorTotal}</span>
                 </div>
+            </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>SABOR</th>
-                            <th style="text-align:center;">QTD</th>
-                            <th style="text-align:center;">FORMATO</th>
-                            <th style="text-align:right;">R$</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itensHTML}
-                    </tbody>
-                </table>
+            <div style="text-align:center;font-size:10px;margin-bottom:5px;padding:3px 6px;border:1px dashed #ddd;border-radius:3px;">
+                ${emojiStatus} <strong>${p.statusPagamento || 'A pagar'}</strong>
+                ${p.statusPagamento === 'Pago Parcialmente' ? ': ' + (p.valorPago || 'R$ 0,00') : ''}
+            </div>
 
-                <div class="resumo">
-                    <div class="resumo-linha">
-                        <span>Valor dos Brigadeiros</span>
-                        <span>${typeof p.valorTotal === 'number' ? 'R$ ' + (p.valorTotal + (p.desconto || 0) - (p.valorFrete || 0)).toFixed(2).replace('.', ',') : '---'}</span>
-                    </div>
-                    ${p.valorFrete > 0 ? `
-                    <div class="resumo-linha">
-                        <span>Frete</span>
-                        <span>R$ ${p.valorFrete.toFixed(2).replace('.', ',')}</span>
-                    </div>
-                    ` : ''}
-                    ${p.desconto > 0 ? `
-                    <div class="resumo-linha" style="color:#e53935;">
-                        <span>Desconto</span>
-                        <span>- R$ ${p.desconto.toFixed(2).replace('.', ',')}</span>
-                    </div>
-                    ` : ''}
-                    <div class="resumo-total">
-                        <span>VALOR TOTAL</span>
-                        <span>${valorTotal}</span>
-                    </div>
-                </div>
+            ${p.observacoes ? `
+            <div style="font-size:9px;color:#666;margin-bottom:5px;padding:3px 6px;border-left:2px solid #FFA500;">
+                <strong>📝 Obs:</strong> ${p.observacoes}
+            </div>` : ''}
 
-                <div class="pagamento">
-                    ${emojiStatus} <strong>${p.statusPagamento || 'A pagar'}</strong>
-                    ${p.statusPagamento === 'Pago Parcialmente' ? `: ${p.valorPago || 'R$ 0,00'}` : ''}
-                </div>
+            <div style="text-align:center;padding-top:4px;border-top:1px dashed #ddd;font-size:8px;color:#bbb;line-height:1.3;">
+                <strong style="color:#E8724A;">Doces Flor</strong> — Brigadeiros Artesanais<br>
+                📞 (47) 9 9274-5896 &nbsp;|&nbsp; Obrigado pela preferência! 💛
+            </div>
+        </div>`;
 
-                ${p.observacoes ? `
-                <div class="obs">
-                    <strong>📝 Obs:</strong> ${p.observacoes}
-                </div>
-                ` : ''}
+        document.body.appendChild(container);
+        toast('⏳ Gerando imagem...', 'aviso');
 
-                <div class="footer">
-                    <strong>Doces Flor</strong> — Brigadeiros Artesanais<br>
-                    📞 (47) 9 9274-5896<br>
-                    Obrigado pela preferência! 💛
-                </div>
-
-                <script>
-                    window.onload = function() {
-                        setTimeout(function() {
-                            window.print();
-                            window.close();
-                        }, 300);
-                    };
-                <\/script>
-            </body>
-            </html>
-        `);
-        win.document.close();
+        setTimeout(() => {
+            const el = document.getElementById('comprovante-conteudo');
+            html2canvas(el, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: false,
+                allowTaint: true,
+                logging: false
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `comprovante-${key.substr(-6)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                container.remove();
+                toast('📷 Imagem baixada! Envie pelo WhatsApp.', 'sucesso');
+            }).catch(err => {
+                container.remove();
+                console.error('html2canvas erro:', err);
+                toast('Erro ao gerar imagem. Tente novamente.', 'erro');
+            });
+        }, 500);
     });
 }
 
