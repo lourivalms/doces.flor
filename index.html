@@ -2202,7 +2202,7 @@ function criarCard(pedido, key, finalizado) {
             <button class="btn btn-marrom"   onclick="toggleDetalhes('${key}')">ℹ️ Detalhes</button>
             <button class="btn btn-azul"     onclick="clonarPedido('${key}')">📋 Clonar</button>
             <button class="btn btn-verde"    onclick="reenviarWhatsApp('${key}')">📲 Reenviar</button>
-            <button class="btn btn-cinza"    onclick="imprimirComprovante('${key}')">🖨️ Imprimir</button>
+            <button class="btn btn-cinza"    onclick="imprimirComprovante('${key}')">🧾 Comprovante</button>
             <button class="btn btn-vermelho" onclick="excluirPedido('${key}')">🗑️ Excluir</button>
           `
         : `
@@ -2994,7 +2994,7 @@ function imprimirComprovante(key) {
         container.style.cssText = 'position:fixed;top:-9999px;left:0;z-index:-1;background:white;';
 
         container.innerHTML = `
-        <div id="comprovante-conteudo" style="width:320px;background:white;padding:14px 16px 10px;margin:0;font-family:Courier New,monospace;">
+        <div id="comprovante-conteudo" style="width:384px;background:white;padding:10px 12px 8px;margin:0;font-family:Courier New,monospace;">
             <div style="text-align:center;border-bottom:1px dashed #E8724A;padding-bottom:5px;margin-bottom:6px;">
                 <h1 style="font-size:18px;color:#E8724A;font-weight:700;margin:2px 0;font-family:Georgia,serif;">DOCES FLOR</h1>
                 <div style="font-size:10px;color:#7B4A2D;">Brigadeiros Artesanais</div>
