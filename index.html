@@ -1237,9 +1237,9 @@ body.dark-mode .btn-mes:hover { background: #5a3f25; }
             </div>
         </div>
 
-        <button class="btn btn-verde btn-bloco" id="btnEnviar" onclick="enviarWhatsApp()">
-            📲 Enviar para WhatsApp
-        </button>
+            <button class="btn btn-verde btn-bloco" id="btnEnviar" onclick="salvarPedido()">
+                💾 Salvar Pedido
+            </button>
         
     </section>
 
@@ -1890,12 +1890,9 @@ function reenviarWhatsApp(key) {
         if (p.valorPago) msg += `Valor Pago: ${p.valorPago}\n`;
         if (p.observacoes) msg += `\nObservações: ${p.observacoes}\n`;
 
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobile) {
-            navigator.clipboard.writeText(msg).then(() => toast('📋 Copiado! Abra o WhatsApp e cole.'));
-        } else {
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-        }
+        copiarParaClipboard(msg).then(ok => {
+            toast(ok ? '📋 Mensagem copiada! Cole no WhatsApp.' : 'Erro ao copiar. Tente novamente.', ok ? 'sucesso' : 'erro');
+        });
     });
 }
 
@@ -1996,7 +1993,7 @@ function reenviarWhatsApp(key) {
             document.body.removeChild(ta);
         }
 
-        function enviarWhatsApp() {
+        function salvarPedido() {
         // Limpar erros anteriores
         document.querySelectorAll('.campo-erro').forEach(el => el.classList.remove('campo-erro'));
         document.querySelectorAll('.msg-erro-campo').forEach(el => el.remove());
@@ -2060,21 +2057,7 @@ function reenviarWhatsApp(key) {
 
             database.ref(refPath).set(pedido).then(() => {
                 toast(window.pedidoEmEdicao ? '✅ Pedido atualizado!' : '✅ Pedido salvo!');
-
-                const msg = montarMensagem();
-
-limparFormulario();
-
-                setTimeout(() => {
-                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                    if (isMobile) {
-                        copiarParaClipboard(msg).then(ok => {
-                            toast(ok ? '📋 Copiado! Abra o WhatsApp e cole.' : 'Erro ao copiar. Tente novamente.', ok ? 'sucesso' : 'erro');
-                        });
-                    } else {
-                        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-                    }
-                }, 500);
+                limparFormulario();
             }).catch(err => toast('❌ Erro ao salvar: ' + err.message, 'erro'));
         }
 
