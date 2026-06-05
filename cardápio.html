@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doces Flor - Menu Gourmet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <!-- CSS Styles -->
+  <style>
+    :root {
+      --dark: #3D1F0A;
+      --accent: #E8943A;
+      --light: #FDF8F0;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      font-family: 'Playfair Display', serif;
+    }
+
+    header {
+      background-color: var(--dark);
+      background-image: repeating-linear-gradient(45deg, #4a270d 0, #4a270d 10px, #3D1F0A 10px, #3D1F0A 20px);
+      color: var(--light);
+      padding: 3rem 1rem;
+      text-align: center;
+    }
+
+    .logo {
+      width: 250px;
+      height: 250px;
+      border: 4px solid var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      background: var(--light);
+      color: var(--dark);
+      font-weight: bold;
+      font-size: 2rem;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .section-title {
+      text-align: center;
+      margin: 3rem 0 2rem;
+      position: relative;
+    }
+
+    .divider {
+      height: 2px;
+      background: linear-gradient(to right, transparent, var(--accent), transparent);
+      margin: 1rem 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+    }
+
+    .card {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: var(--transition);
+      text-align: center;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .badge-trad {
+      background: var(--dark);
+      color: #fff;
+    }
+
+    .badge-gourmet {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .contact-bar {
+      background: var(--dark);
+      color: var(--light);
+      padding: 2rem;
+      text-align: center;
+      margin-top: 3rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 1rem;
+      transition: var(--transition);
+    }
+
+    .btn:hover {
+      filter: brightness(1.2);
+    }
+
+        .whatsapp-link {
+    display: inline-block;
+    background-color: #25D366;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    margin: 0.5rem 0;
+    }
+
+    .whatsapp-link:hover {
+    background-color: #128C7E;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .instagram-link {
+  display: inline-block;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin: 0.5rem 0;
+}
+
+.instagram-link:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: #f1f1f1;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: var(--accent);
+}
+
+.modal-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #f1f1f1;
+  border: none;
+  font-size: 30px;
+  padding: 15px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.modal-nav:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.modal-nav-prev {
+  left: 20px;
+}
+
+.modal-nav-next {
+  right: 20px;
+}
+
+  </style>
+</head>
+
+<body>
+
+  <!-- Header Section -->
+  <header>
+    <img src="https://raw.githubusercontent.com/lourivalms/doces.flor/main/icon-512.png" alt="Logo Doces Flor" class="logo" id="logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex'">
+<div class="logo" id="logo-fallback" style="display:none;">DF</div>
+    <h1>Doces Flor</h1>
+    <p>Doces Artesanais</p>
+    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+  <a href="https://wa.me/5547992745896" target="_blank" class="whatsapp-link">
+    WhatsApp
+  </a>
+  <a href="https://www.instagram.com/docesflorjgs/" target="_blank" class="instagram-link">
+    Instagram
+  </a>
+</div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="container">
+    <section id="tradicionais">
+      <h2 class="section-title">Tradicionais - R$ 125,00</h2>
+      <div class="divider"></div>
+      <div class="grid" id="grid-trad"></div>
+    </section>
+
+    <section id="gourmet">
+      <h2 class="section-title">Gourmet - R$ 150,00</h2>
+      <div class="divider"></div>
+      <div class="grid" id="grid-gourmet"></div>
+    </section>
+  </div>
+
+  <!-- Footer Section -->
+  <footer class="contact-bar">
+    <h3>Entre em contato</h3>
+    <a href="https://wa.me/5547992745896" target="_blank" class="whatsapp-link">
+  WhatsApp: (47) 9 9274-5896
+</a>
+    <a href="https://www.instagram.com/docesflorjgs/" target="_blank" class="instagram-link">
+  Instagram: @docesflorjgs
+</a>
+  </footer>
+
+  <!-- JavaScript Logic -->
+  <script>
+const trads = [
+  { nome: 'Amendoim', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/amendoim.png' },
+  { nome: 'Beijinho', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/beijinho.png' },
+  { nome: 'Brigadeiro', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/brigadeiro.png' },
+  { nome: 'Dois amores', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/dois-amores.png' },
+  { nome: 'Leite ninho', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/leite-ninho.png' },
+  { nome: 'Moranguinho', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/moranguinho.png' },
+  { nome: 'Sensação', fotos: [
+     'https://raw.githubusercontent.com/lourivalms/doces.flor/main/sensacao-redondo.png',
+     'https://raw.githubusercontent.com/lourivalms/doces.flor/main/sensacao-flor.png'
+   ]},
+];
+
+const gourmets = [
+  { nome: 'Confete', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/confete.png' },
+  { nome: 'Churros', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/churros.png' },
+  { nome: 'Negresco', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/negresco.png' },
+  { nome: 'Leite Ninho com Nutella', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/leite-ninho-nutella.png' },
+  { nome: 'Ovomaltine', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/ovomaltine.png' },
+  { nome: 'Prestígio', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/prestigio.png' },
+  { nome: 'Chocolate Gourmet', foto: 'https://raw.githubusercontent.com/lourivalms/doces.flor/main/chocolate-gourmet.png' }
+];
+
+function createCards(list, containerId, type) {
+  const container = document.getElementById(containerId);
+  list.forEach((item, index) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const imgId = `img-${containerId}-${index}`;
+    const itemName = item.nome;
+    const itemFotos = item.fotos || [item.foto];
+    const primeiraFoto = itemFotos[0];
+    
+    // Armazena o array de fotos no elemento para acesso posterior
+    card.dataset.fotos = JSON.stringify(itemFotos);
+    
+    card.innerHTML = `
+      <img id="${imgId}" src="${primeiraFoto}" alt="${itemName}" style="width:100%; height:200px; object-fit:cover; border-radius:8px; background:#f0f0f0; ${primeiraFoto ? 'display:block;' : 'display:none;'}; cursor:pointer;" onclick="openModal('${primeiraFoto}')">
+      <div style="width:100%; height:200px; background:#f0f0f0; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:1rem; ${primeiraFoto ? 'display:none;' : 'display:flex;'}" id="placeholder-${imgId}">
+        <span style="color:#999; font-size:0.9rem;">Sem foto</span>
+      </div>
+      <span class="badge badge-${type}">${type === 'trad' ? 'Tradicional' : 'Gourmet'}</span>
+      <h3>${itemName}</h3>
+      ${itemFotos.length > 1 ? `<div style="display:flex; gap:0.5rem; margin-top:1rem; justify-content:center; flex-wrap:wrap;">` : ''}
+      ${itemFotos.map((foto, i) => `<button class="btn" style="padding:0.5rem 1rem; font-size:0.8rem;" onclick="openModal('${foto}')">Foto ${i + 1}</button>`).join('')}
+      ${itemFotos.length > 1 ? `</div>` : ''}
+      <input type="file" id="file-${imgId}" accept="image/*" style="display:none;">
+    `;
+    container.appendChild(card);
+    
+    // Evento para quando a foto for selecionada
+    document.getElementById(`file-${imgId}`).addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = document.getElementById(imgId);
+          const placeholder = document.getElementById(`placeholder-${imgId}`);
+          img.src = event.target.result;
+          img.style.display = 'block';
+          placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  });
+}
+
+    createCards(trads, 'grid-trad', 'trad');
+    createCards(gourmets, 'grid-gourmet', 'gourmet');
+
+    const logo = document.getElementById('logo');
+    logo.onerror = () => { logo.innerText = 'DF'; };
+
+let currentImages = [];
+let currentImageIndex = 0;
+
+function openModal(imageSrc, fotosArray) {
+  const modal = document.getElementById('imageModal');
+  const modalImage = document.getElementById('modalImage');
+  
+  // Se fotosArray for string (JSON), faz parse
+  if (typeof fotosArray === 'string') {
+    currentImages = JSON.parse(fotosArray);
+  } else {
+    currentImages = fotosArray || [imageSrc];
+  }
+  
+  // Encontra o índice da imagem clicada
+  currentImageIndex = currentImages.indexOf(imageSrc);
+  if (currentImageIndex === -1) {
+    currentImageIndex = 0;
+  }
+  
+  modalImage.src = imageSrc;
+  modal.classList.add('active');
+}
+
+function closeModal() {
+  const modal = document.getElementById('imageModal');
+  modal.classList.remove('active');
+}
+
+function prevImage() {
+  if (currentImages && currentImages.length > 1) {
+    currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
+    document.getElementById('modalImage').src = currentImages[currentImageIndex];
+  }
+}
+
+function nextImage() {
+  if (currentImages && currentImages.length > 1) {
+    currentImageIndex = (currentImageIndex + 1) % currentImages.length;
+    document.getElementById('modalImage').src = currentImages[currentImageIndex];
+  }
+}
+
+// Esperar o DOM estar pronto antes de adicionar listeners
+document.addEventListener('DOMContentLoaded', function() {
+  // Fechar modal ao clicar fora da imagem
+  const modal = document.getElementById('imageModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeModal();
+      }
+    });
+  }
+
+  // Fechar modal ao pressionar ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  });
+});
+
+  </script>
+
+  <div id="imageModal" class="modal">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <button class="modal-nav modal-nav-prev" onclick="prevImage()">&lt;</button>
+    <img class="modal-content" id="modalImage" src="" alt="Zoom">
+    <button class="modal-nav modal-nav-next" onclick="nextImage()">&gt;</button>
+  </div>
+
+</body>
+</html>
